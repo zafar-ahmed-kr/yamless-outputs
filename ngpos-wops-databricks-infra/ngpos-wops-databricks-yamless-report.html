@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>YAMLess Case Study — ngpos-wops-databricks</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">YAMLess Case Study — ngpos-wops-databricks</h1>
+</header>
+<h1 id="yamless-generating-azure-infrastructure-from-code">YAMLess:
+Generating Azure Infrastructure from Code</h1>
+<h3 id="case-study-krogertechnologyngpos-wops-databricks">Case Study —
+krogertechnology/ngpos-wops-databricks</h3>
+<hr />
+<h2 id="what-is-yamless">What is YAMLess?</h2>
+<p>YAMLess is an <strong>Infrastructure from Code (IFC)</strong> tool.
+Given an <strong>application</strong> code repository, it produces a
+complete, policy-validated Azure Terraform workspace targeting
+<strong>containerized compute</strong> — Azure Container Apps or AKS. It
+is designed for microservices and background workers that run in Docker
+containers.</p>
+<hr />
+<h2 id="applying-yamless-to-ngpos-wops-databricks">Applying YAMLess to
+ngpos-wops-databricks</h2>
+<p><a
+href="https://github.com/krogertechnology/ngpos-wops-databricks">ngpos-wops-databricks</a>
+is the NGPOS Warehouse Operations Databricks platform. It implements
+multiple POS operational event pipelines using <strong>Apache Spark /
+Databricks</strong>:</p>
+<ul>
+<li><strong>File consumption</strong> — Delta Live Tables (DLT)
+ingesting files from ADLS Gen2 into Bronze/Silver layers</li>
+<li><strong>DESP consumers</strong> — Streaming pipelines consuming from
+Azure Event Hubs (Kafka-compatible) for diesel and additech events</li>
+<li><strong>Quality jobs</strong> — Fuel consumer QA checks and
+reporting</li>
+<li><strong>API consumption</strong> — Location and store locator data
+ingestion</li>
+</ul>
+<p>The repo includes: - <code>databricks/source/</code> — PySpark
+pipeline code (Delta Live Tables, batch jobs, quality tasks) -
+<code>databricks/requirements.txt</code> — Azure SDK, Kafka, Event Hubs,
+ADLS Gen2, Databricks SDK - <code>infrastructure/main.tf</code> —
+Terraform provisioning a Databricks workspace via Kroger’s
+<code>diem-databricks-environment</code> module - <code>diem/</code> —
+Kroger’s Databricks deployment framework (init scripts, job templates,
+cluster config) - <code>config/</code> — Cluster and SQL warehouse
+configuration JSONs</p>
+<h3 id="command-run">Command run</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">yamless</span> analyze /tmp/ngpos-wops-databricks <span class="at">--no-llm</span></span></code></pre></div>
+<h3 id="profile-detected">Profile detected</h3>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 36%" />
+<col style="width: 29%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detected value</th>
+<th>Confidence</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td><code>python</code></td>
+<td>medium</td>
+<td><code>pyproject.toml</code> at root — no Dockerfile found</td>
+</tr>
+<tr>
+<td>Runtime version</td>
+<td><code>null</code></td>
+<td>—</td>
+<td>Dockerfile is at <code>diem/build/Dockerfile</code>, not root</td>
+</tr>
+<tr>
+<td>Shape</td>
+<td><code>unknown</code></td>
+<td>low</td>
+<td>No HTTP framework, no worker packages at root</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>null</code></td>
+<td>—</td>
+<td><code>databricks/requirements.txt</code> not scanned (non-standard
+path)</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td><code>false</code></td>
+<td>—</td>
+<td><code>azure-storage-file-datalake</code> not scanned (same
+reason)</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td><code>false</code></td>
+<td>—</td>
+<td><code>azure-eventhub</code>, <code>confluent-kafka</code> not
+scanned (same reason)</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td><code>DATABRICKS_TOKEN</code>,
+<code>PYTEST_DATABRICKS_TOKEN</code></td>
+<td>high</td>
+<td>Found in test/workflow source files</td>
+</tr>
+</tbody>
+</table>
+<p><strong>No Terraform was generated.</strong> Even if yamless had
+detected all dependencies correctly, generating AKS or Container Apps
+Terraform would be wrong — this workload runs on Databricks (Apache
+Spark), not in Docker containers.</p>
+<h3 id="what-the-existing-infrastructure-actually-provisions">What the
+existing infrastructure actually provisions</h3>
+<p>The <code>infrastructure/</code> directory already contains
+hand-authored Terraform using Kroger’s internal
+<code>diem-databricks-environment</code> Terraform Cloud module, which
+provisions:</p>
+<ul>
+<li>Databricks workspace (Premium SKU)</li>
+<li>Databricks cluster with Kroger’s DIEM framework and
+Datadog/Dynatrace observability agents</li>
+<li>Key Vault for secrets</li>
+<li>ADLS Gen2 integration for Delta Lake storage</li>
+<li>Artifactory integration for private Python package registry
+(<code>diem-framework</code>, <code>confluent-kafka</code>, etc.)</li>
+</ul>
+<p>This is exactly the correct infrastructure for a Databricks platform
+— and it was already written by the team.</p>
+<hr />
+<h2 id="what-this-test-case-reveals-about-yamless">What this test case
+reveals about YAMLess</h2>
+<h3 id="no-detection-of-databricks-analytics-compute-paradigms">1. No
+detection of Databricks / analytics compute paradigms</h3>
+<p><strong>What happened:</strong> YAMLess identified
+<code>pyproject.toml</code> at the root and returned
+<code>runtime: python</code>. It then found
+<code>DATABRICKS_TOKEN</code> secrets, shape <code>unknown</code>, and
+no dependencies — and would have generated a near-empty Container Apps
+workspace if asked to render.</p>
+<p><strong>What should happen:</strong> YAMLess should detect Databricks
+repos early and exit with a clear message:</p>
+<pre><code>✗ This repository appears to target Databricks / Apache Spark compute.
+  YAMLess generates Azure Container Apps and AKS infrastructure for containerized services.
+  Databricks workloads require Databricks workspace infrastructure, which is out of scope.
+  The repo&#39;s existing infrastructure/ directory already contains the appropriate Terraform.</code></pre>
+<p><strong>Detection heuristics</strong> (any of these signal a
+Databricks platform repo): - <code>databricks-sdk</code> in any
+<code>requirements*.txt</code> or <code>pyproject.toml</code> -
+<code>databricks/</code> directory at root containing source code -
+<code>*.dlt.py</code> files (Delta Live Tables) -
+<code>DATABRICKS_TOKEN</code> or <code>DATABRICKS_HOST</code> env var
+references - <code>infrastructure/main.tf</code> referencing a
+Databricks workspace resource</p>
+<hr />
+<h3 id="requirements-scanning-doesnt-handle-non-standard-paths">2.
+Requirements scanning doesn’t handle non-standard paths</h3>
+<p><strong>What happened:</strong> All 16 packages in
+<code>databricks/requirements.txt</code> — including
+<code>azure-eventhub</code>, <code>confluent-kafka</code>,
+<code>azure-storage-file-datalake</code>, <code>azure-servicebus</code>,
+<code>azure-keyvault-secrets</code> — were completely invisible to
+yamless. The dependency scanner only looks at
+<code>requirements.txt</code>, <code>requirements-prod.txt</code>, and
+<code>requirements/base.txt</code> relative to the repo root.
+<code>databricks/requirements.txt</code> doesn’t match any of these.</p>
+<p><strong>Impact on other repos:</strong> This affects any Python repo
+that organises requirements by subdirectory (common in monorepos and
+platform repos). If the Databricks paradigm were supported, none of the
+rich dependency signals (Kafka, Event Hubs, ADLS, Service Bus) would
+have been surfaced.</p>
+<p><strong>Proposed fix (backlog #13):</strong> When the root-level
+requirements files yield no packages, fall back to searching one level
+deep for any <code>requirements*.txt</code> file and scanning those.
+This would correctly handle <code>databricks/requirements.txt</code>,
+<code>api/requirements.txt</code>, <code>worker/requirements.txt</code>
+patterns common in multi-component Python repos.</p>
+<hr />
+<h3
+id="dockerfile-not-found-diembuilddockerfile-outside-search-paths">3.
+Dockerfile not found — <code>diem/build/Dockerfile</code> outside search
+paths</h3>
+<p><strong>What happened:</strong> <code>dockerfile: false</code> was
+returned even though <code>diem/build/Dockerfile</code> exists. The
+Dockerfile scanner only looks at the repo root (<code>Dockerfile</code>,
+<code>Dockerfile.prod</code>, etc.).</p>
+<p>This is intentional design — the Databricks image is a cluster init
+image, not the application’s own container. But it illustrates that deep
+Dockerfiles need to be either found or explicitly excluded to avoid
+confusing analysis results.</p>
+<hr />
+<h2
+id="what-the-databricksrequirements.txt-signals-if-it-had-been-read">What
+the <code>databricks/requirements.txt</code> signals (if it had been
+read)</h2>
+<p>For reference, here is what yamless would have detected from
+<code>databricks/requirements.txt</code>:</p>
+<table>
+<colgroup>
+<col style="width: 52%" />
+<col style="width: 47%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package</th>
+<th>Signal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>azure-eventhub==5.11.7</code></td>
+<td>Queue (Event Hubs / Kafka-compatible)</td>
+</tr>
+<tr>
+<td><code>confluent-kafka==2.15.0</code></td>
+<td>Queue (Kafka)</td>
+</tr>
+<tr>
+<td><code>kafka-python==2.2.20</code></td>
+<td>Queue (Kafka)</td>
+</tr>
+<tr>
+<td><code>azure-servicebus==7.12.3</code></td>
+<td>Queue (Service Bus)</td>
+</tr>
+<tr>
+<td><code>azure-storage-file-datalake==12.18.0</code></td>
+<td>Storage (ADLS Gen2)</td>
+</tr>
+<tr>
+<td><code>azure-storage-queue==12.12.0</code></td>
+<td>Queue</td>
+</tr>
+<tr>
+<td><code>azure-keyvault-secrets==4.8.0</code></td>
+<td>(Key Vault — infra, not app dep signal)</td>
+</tr>
+<tr>
+<td><code>databricks-sdk==0.46.0</code></td>
+<td><strong>Databricks platform signal</strong></td>
+</tr>
+<tr>
+<td><code>diem-framework==2.26.1</code></td>
+<td>Kroger internal Databricks framework</td>
+</tr>
+</tbody>
+</table>
+<p>Even with correct dependency detection, <code>databricks-sdk</code>
+would be the decisive signal to reject this repo as a non-containerized
+workload.</p>
+<hr />
+<h2 id="improvement-roadmap-from-this-test">Improvement Roadmap from
+this test</h2>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 29%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Change</th>
+<th>Backlog</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Medium</td>
+<td>Detect Databricks/Spark repos and emit clear unsupported-platform
+message</td>
+<td>#13 (new)</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Fall back to subdirectory <code>requirements*.txt</code> scanning
+when root has none</td>
+<td>new</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Consolidate infra-only + wrong-platform detection into a single
+pre-flight guard</td>
+<td>extends #12</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<p><code>ngpos-wops-databricks</code> is an Apache Spark / Databricks
+data engineering platform. It is not a containerized microservice and is
+outside the scope of what YAMLess generates. The existing
+<code>infrastructure/main.tf</code> already correctly provisions a
+Databricks workspace using Kroger’s internal DIEM Terraform module.</p>
+<p><strong>No Terraform was generated</strong> — generating Container
+Apps or AKS infrastructure for a Databricks workload would be
+architecturally incorrect.</p>
+<p>Two new gaps surfaced: 1. <strong>No Databricks/analytics platform
+detection</strong> — yamless should recognise
+<code>databricks-sdk</code>, <code>DATABRICKS_TOKEN</code>, and similar
+signals and exit with a clear message rather than returning a confusing
+partial profile. 2. <strong>Non-standard requirements.txt paths not
+scanned</strong> — <code>databricks/requirements.txt</code> was
+invisible; a subdirectory fallback scan would fix this for any
+multi-component Python repo.</p>
+<hr />
+<p><em>Generated by YAMLess —
+https://github.com/zafar-ahmed-kr/YAMLess</em></p>
+</body>
+</html>
