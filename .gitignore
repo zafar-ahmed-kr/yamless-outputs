@@ -1,0 +1,2 @@
+# Ignore cloned source repos in /tmp — outputs only
+*.DS_Store

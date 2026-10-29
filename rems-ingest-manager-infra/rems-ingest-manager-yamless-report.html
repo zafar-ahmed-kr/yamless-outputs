@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>YAMLess Case Study — REMS Ingest Manager</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">YAMLess Case Study — REMS Ingest Manager</h1>
+</header>
+<h1 id="yamless-generating-azure-infrastructure-from-code">YAMLess:
+Generating Azure Infrastructure from Code</h1>
+<h3
+id="case-study-krogertechnologypos-service-instore-rems-ingest-manager">Case
+Study — krogertechnology/pos-service-instore-rems-ingest-manager</h3>
+<hr />
+<h2 id="what-is-yamless">What is YAMLess?</h2>
+<p>YAMLess is an <strong>Infrastructure from Code (IFC)</strong> tool.
+Given a code repository, it produces a complete, policy-validated Azure
+Terraform workspace — with no configuration files, no schema to fill in,
+and no IaC expertise required from the developer.</p>
+<p>The pipeline has four stages:</p>
+<pre><code>Repo on disk
+    │
+    ▼
+┌─────────────────────┐
+│  1. Static Analyzer │  Reads Dockerfile, package.json / requirements.txt /
+│                     │  pom.xml, .env files, source code. No execution, no
+│                     │  API calls. Produces a typed AppProfile with confidence.
+└──────────┬──────────┘
+           │  (fires only when any field is low/medium confidence)
+           ▼
+┌─────────────────────┐
+│  2. LLM Gap-Filler  │  Claude reads relevant source files and fills in what
+│                     │  static analysis couldn&#39;t determine — via structured
+│                     │  tool use only, no free-form parsing.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  3. Renderer        │  Jinja2 root templates + static Terraform modules →
+│                     │  ready-to-apply workspace. Outputs Container Apps
+│                     │  or AKS, selected by --target.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  4. Validator       │  checkov policy-as-code. Security posture is enforced
+│                     │  by static module files — the LLM cannot affect it.
+└─────────────────────┘</code></pre>
+<hr />
+<h2
+id="applying-yamless-to-pos-service-instore-rems-ingest-manager">Applying
+YAMLess to pos-service-instore-rems-ingest-manager</h2>
+<p><a
+href="https://github.com/krogertechnology/pos-service-instore-rems-ingest-manager">pos-service-instore-rems-ingest-manager</a>
+is a Kroger NGPOS in-store accounting service: a <strong>Java 17 /
+Spring Boot + Apache Camel</strong> background worker that ingests REMS
+(Retail Expense Management System) data from Kafka topics and publishes
+transformed events to Azure Service Bus and AMQP queues. It has no HTTP
+server, no database, and no exposed port — a purely event-driven,
+headless consumer.</p>
+<h3 id="command-run">Command run</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">yamless</span> generate /tmp/pos-service-instore-rems-ingest-manager <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--no-llm</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--target</span> aks <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out-dir</span> ~/yamless-outputs/rems-ingest-manager-infra <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--validate</span></span></code></pre></div>
+<h3 id="profile-detected">Profile detected</h3>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 36%" />
+<col style="width: 29%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detected value</th>
+<th>Confidence</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td><code>java</code></td>
+<td>high</td>
+<td>FROM <code>java-openjre:17-latest</code> in Dockerfile</td>
+</tr>
+<tr>
+<td>Runtime version</td>
+<td><code>17</code></td>
+<td>high</td>
+<td>Parsed from image tag</td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>null</code></td>
+<td>—</td>
+<td>No EXPOSE directive — correct for a headless consumer</td>
+</tr>
+<tr>
+<td>Shape</td>
+<td><code>background-worker</code></td>
+<td>high</td>
+<td><code>camel-kafka</code>, <code>camel-azure-servicebus</code>,
+<code>amqp-client</code> in pom.xml</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>null</code></td>
+<td>—</td>
+<td>No DB artifact IDs found — correct</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>No storage artifact IDs found — correct</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td><code>true</code></td>
+<td>high</td>
+<td>Azure Service Bus + Kafka + AMQP all detected</td>
+</tr>
+<tr>
+<td>Cache</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>Not detected</td>
+</tr>
+<tr>
+<td>Scale trigger</td>
+<td><code>queue</code></td>
+<td>—</td>
+<td>Derived from queue detection → KEDA ScaledObject</td>
+</tr>
+<tr>
+<td>Ingress</td>
+<td><code>external: false</code></td>
+<td>—</td>
+<td>Correct — no public endpoint</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td><code>[]</code></td>
+<td>—</td>
+<td>No <code>.env</code> files committed; secrets injected at
+runtime</td>
+</tr>
+</tbody>
+</table>
+<h3 id="output-generated-aks-target">Output generated (AKS target)</h3>
+<pre><code>rems-ingest-manager-infra/
+├── terraform/
+│   ├── main.tf              # VNet, AKS cluster, Workload Identity, Key Vault, Service Bus
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── providers.tf
+│   └── modules/
+│       ├── vnet/            # VNet + AKS subnet (10.0.0.0/16 / 10.0.0.0/20)
+│       ├── aks_cluster/     # AKS with OIDC, Workload Identity, Key Vault CSI, KEDA
+│       ├── aks_workload_identity/  # Federated identity credential + KV Secrets User role
+│       ├── keyvault/        # Key Vault with RBAC + network deny-all
+│       └── servicebus/      # Service Bus namespace + queue + connection string → KV
+└── k8s/
+    ├── namespace.yaml
+    ├── service-account.yaml         # Workload Identity annotation
+    ├── secret-provider-class.yaml   # CSI driver mounts
+    ├── deployment.yaml              # No HTTP probes — correct for a worker
+    ├── hpa.yaml                     # KEDA ScaledObject with azure-servicebus trigger
+    └── network-policy.yaml          # Default-deny; no ingress allow rule (worker shape)</code></pre>
+<p>Note: <code>service.yaml</code> and <code>ingress.yaml</code> are
+<strong>not generated</strong> — correct, because the shape is
+<code>background-worker</code>.</p>
+<p><strong>43/43 policy checks passed</strong> — the output is valid and
+deployable.</p>
+<h3 id="what-the-output-correctly-captured">What the output correctly
+captured</h3>
+<ul>
+<li>Headless worker shape: no Service or Ingress Kubernetes
+manifests</li>
+<li>KEDA <code>ScaledObject</code> with <code>azure-servicebus</code>
+trigger (queue-based autoscaling, <code>min: 1</code>,
+<code>max: 10</code>)</li>
+<li>Azure Service Bus provisioned with connection string written to Key
+Vault</li>
+<li>AKS Workload Identity with federated credential for pod-level Key
+Vault access</li>
+<li>Key Vault CSI driver configured in the AKS cluster</li>
+<li>Runtime tag <code>java</code> on all Azure resources for
+observability</li>
+<li>All security golden standards: RBAC-only KV auth, TLS 1.2, public
+network access disabled, consistent tagging</li>
+</ul>
+<h3 id="what-was-missed">What was missed</h3>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr>
+<th>Missing</th>
+<th>Root cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kafka / Event Hubs module</td>
+<td><code>camel-kafka</code> was detected and used for shape inference,
+but no Kafka Terraform module exists — only Service Bus. The app
+consumes from Kafka but the generated infra doesn’t provision a
+Kafka-compatible endpoint.</td>
+</tr>
+<tr>
+<td>All runtime secrets</td>
+<td>The repo has zero <code>.env</code> files. Connection strings (Kafka
+bootstrap, Service Bus SAS, AMQP credentials, schema registry URL) are
+injected via Kubernetes Secrets or Helm values at deploy time — neither
+of which the env scanner currently reads.</td>
+</tr>
+<tr>
+<td>Kafka-specific Service Bus distinction</td>
+<td>The app uses both Kafka (ingest) and Service Bus (publish). YAMLess
+detects <code>queue: true</code> but cannot yet distinguish which
+backing service maps to which role.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="what-this-test-case-drove-into-yamless">What this test case
+drove into YAMLess</h2>
+<p>Before testing this repo, YAMLess had no Java support. Three bugs
+were found and fixed:</p>
+<h3 id="java-runtime-was-not-detected-returned-python-instead">1. Java
+runtime was not detected — returned <code>python</code> instead</h3>
+<p><strong>Root cause:</strong> The Dockerfile base image is
+<code>krogertechnology-docker-prod.jfrog.io/library/java-openjre:17-latest</code>
+— a private Kroger JFrog image. YAMLess’s <code>_RUNTIME_PATTERNS</code>
+only matched <code>node:</code> and <code>python:</code> image names, so
+it fell through to <code>_infer_runtime_from_files()</code>.</p>
+<p><code>_infer_runtime_from_files()</code> then hit
+<code>any(root.glob("**/*.py"))</code> which matched
+<code>pact-broker/normalize-asyncapi.py</code> — a single utility script
+with no relation to the application runtime — and classified the entire
+repo as Python.</p>
+<p><strong>Fix applied:</strong> - Added Java image patterns to
+<code>_RUNTIME_PATTERNS</code>: <code>java-openjre</code>,
+<code>openjdk</code>, <code>eclipse-temurin</code>,
+<code>corretto</code>, <code>temurin</code>, <code>liberica</code>,
+<code>zulu</code>, <code>adoptopenjdk</code> — with version capture from
+the tag - Added <code>pom.xml</code> / <code>build.gradle</code> /
+<code>build.gradle.kts</code> detection to
+<code>_infer_runtime_from_files()</code>, checked before Python
+indicators - Changed <code>root.glob("**/*.py")</code> →
+<code>root.glob("*.py")</code> (top-level only) — a single script in a
+subdirectory is not evidence of a Python runtime</p>
+<h3 id="pom.xml-dependency-parsing-did-not-exist">2. pom.xml dependency
+parsing did not exist</h3>
+<p><strong>Root cause:</strong> YAMLess only parsed
+<code>package.json</code> (Node) and <code>requirements.txt</code> /
+<code>pyproject.toml</code> (Python). Java repos produced
+<code>database: null</code>, <code>queue: false</code>,
+<code>shape: unknown</code> regardless of what was in
+<code>pom.xml</code>.</p>
+<p><strong>Fix applied:</strong> Added <code>_parse_java()</code> to
+<code>dependencies.py</code> using <code>xml.etree.ElementTree</code>
+(stdlib). It extracts all <code>&lt;artifactId&gt;</code> values and
+classifies them against tables for: - Database (<code>postgresql</code>,
+<code>mysql-connector-j</code>, <code>azure-cosmos</code>,
+<code>mssql-jdbc</code>, …) - Storage (<code>azure-storage-blob</code>,
+<code>aws-java-sdk-s3</code>, …) - Queue (<code>camel-kafka</code>,
+<code>kafka-clients</code>, <code>camel-azure-servicebus</code>,
+<code>azure-messaging-servicebus</code>, <code>amqp-client</code>, …) -
+Cache (<code>jedis</code>, <code>lettuce-core</code>,
+<code>spring-boot-starter-data-redis</code>, …) - HTTP frameworks
+(<code>spring-boot-starter-web</code>, <code>spring-webflux</code>,
+<code>quarkus-resteasy</code>, …) — produces
+<code>shape_hint: "http-service"</code> - Cron schedulers
+(<code>quartz</code>, <code>camel-quartz</code>) — produces
+<code>shape_hint: "cron-job"</code> - Queue consumers (Kafka, Service
+Bus, AMQP) — produces <code>shape_hint: "background-worker"</code></p>
+<h3 id="scale-trigger-was-stuck-at-cpu-for-java-workers">3. Scale
+trigger was stuck at <code>cpu</code> for Java workers</h3>
+<p><strong>Root cause:</strong> The <code>background-worker</code> scale
+trigger selection called <code>_has_queue_dep(deps_lower)</code> which
+checked raw npm package names. For Java, <code>deps</code> was always
+<code>set()</code> so the trigger defaulted to <code>cpu</code> even
+when <code>queue: true</code> was set.</p>
+<p><strong>Fix applied:</strong> Added
+<code>has_queue: bool = False</code> parameter to
+<code>shape_detector.detect()</code>. Runner passes the queue signal
+from dep analysis directly, so <code>ScaleTrigger.QUEUE</code> is
+selected correctly for any runtime with a queue dependency.</p>
+<hr />
+<h2 id="learnings-for-yamless">Learnings for YAMLess</h2>
+<h3 id="kafka-needs-its-own-terraform-module-backlog-10">1. Kafka needs
+its own Terraform module (backlog #10)</h3>
+<p><strong>What happened:</strong> The analyzer correctly identifies
+<code>camel-kafka</code> and <code>kafka-streams-avro-serde</code> as
+Kafka consumers. But the renderer has only a Service Bus module. There
+is no Azure Event Hubs module, which is the natural Kafka-compatible
+endpoint on Azure.</p>
+<p>The generated output provisions Service Bus (also used by this
+service for publishing), but nothing for the Kafka ingest side. A team
+deploying this output would need to manually provision an Event Hubs
+namespace with Kafka protocol enabled.</p>
+<p><strong>Proposed fix:</strong> Add an <code>event_hubs/</code>
+Terraform module to both renderers. Detect Kafka artifact IDs as a
+separate signal (<code>has_kafka: bool</code>) distinct from Service Bus
+(<code>has_servicebus: bool</code>). Wire both conditionally into
+<code>main.tf.j2</code>. The two are not mutually exclusive — this
+service uses both.</p>
+<hr />
+<h3
+id="runtime-injected-secrets-are-invisible-to-the-env-scanner-backlog-11">2.
+Runtime-injected secrets are invisible to the env scanner (backlog
+#11)</h3>
+<p><strong>What happened:</strong> The repo has no <code>.env</code>
+files. All connection strings — Kafka bootstrap server, Service Bus SAS
+key, AMQP credentials, Schema Registry URL — arrive via Kubernetes
+Secrets or CI/CD variable injection. The env scanner returned
+<code>secrets: []</code>, which means Key Vault is provisioned but
+empty. A team deploying this output would need to manually populate
+every secret.</p>
+<p><strong>Proposed fix:</strong> Extend secret scanning to cover: -
+<strong>Helm values</strong> — scan <code>helm/</code>,
+<code>charts/</code> for <code>secretKeyRef</code>,
+<code>configMapKeyRef</code>, and <code>env:</code> key names in
+<code>values.yaml</code> / <code>values-*.yaml</code> -
+<strong>Kubernetes manifests</strong> — scan <code>k8s/</code>,
+<code>kubernetes/</code>, <code>deploy/</code> for <code>Secret</code>
+and <code>ConfigMap</code> env var keys - <strong>Spring Boot
+<code>application.yml</code></strong> — scan
+<code>src/main/resources/application*.yml</code> for
+<code>${ENV_VAR_NAME}</code> placeholder patterns; this is the standard
+way Spring Boot apps declare their config surface</p>
+<p>For this repo specifically,
+<code>src/main/resources/application*.yml</code> would likely surface
+the Kafka bootstrap, schema registry, and Service Bus connection string
+env var names.</p>
+<hr />
+<h2 id="improvement-roadmap">Improvement Roadmap</h2>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 30%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Change</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Medium</td>
+<td>Kafka / Azure Event Hubs Terraform module (#10)</td>
+<td>Correct infra for any Kafka-consuming service</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Secret scanning for Helm values + Spring Boot application.yml
+(#11)</td>
+<td>Surfaces runtime-injected secrets for Java and Helm-deployed
+services</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Multi-queue model — distinguish <code>has_kafka</code> from
+<code>has_servicebus</code></td>
+<td>One service can use both; they map to different Azure resources</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>This is the first Java repo tested against YAMLess. The static
+analyzer correctly identified: - Runtime: Java 17 (from a
+private-registry base image containing “java” and “17” in the tag) -
+Shape: background-worker (from <code>camel-kafka</code>,
+<code>camel-azure-servicebus</code>, <code>amqp-client</code> in
+<code>pom.xml</code>) - Queue: true (Azure Service Bus + Kafka + AMQP) -
+Scale trigger: queue (KEDA)</p>
+<p>The generated AKS Terraform and Kubernetes manifests are structurally
+correct — no service, no ingress, KEDA-based autoscaling, Workload
+Identity, Key Vault. <strong>43/43 checkov checks pass.</strong></p>
+<p>The two gaps are well-bounded: Kafka has no Terraform module yet
+(tracked as #10), and runtime-injected secrets are not discoverable from
+committed files (tracked as #11). Both are solvable; neither is a
+fundamental limitation of the approach.</p>
+<p>Testing this repo also uncovered and fixed three bugs in the
+analyzer: a false Python classification from a <code>**/*.py</code>
+glob, no Java runtime patterns in the Dockerfile detector, and no
+pom.xml parser. Java support is now part of the core analyzer.</p>
+<hr />
+<p><em>Generated by YAMLess —
+https://github.com/zafar-ahmed-kr/YAMLess</em></p>
+</body>
+</html>

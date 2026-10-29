@@ -1,0 +1,17 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: pos-service-instore-rems-ingest-manager
+  namespace: pos-service-instore-rems-ingest-manager
+spec:
+  scaleTargetRef:
+    name: pos-service-instore-rems-ingest-manager
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+    - type: azure-servicebus
+      authenticationRef:
+        name: pos-service-instore-rems-ingest-manager-trigger-auth
+      metadata:
+        queueName: pos-service-instore-rems-ingest-manager
+        messageCount: "10"

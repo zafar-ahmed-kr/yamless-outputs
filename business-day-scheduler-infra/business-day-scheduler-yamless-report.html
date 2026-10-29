@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>YAMLess Case Study — Business Day Scheduler</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">YAMLess Case Study — Business Day Scheduler</h1>
+</header>
+<h1 id="yamless-generating-azure-infrastructure-from-code">YAMLess:
+Generating Azure Infrastructure from Code</h1>
+<h3
+id="case-study-krogertechnologypos-service-business-day-scheduler">Case
+Study — krogertechnology/pos-service-business-day-scheduler</h3>
+<hr />
+<h2 id="what-is-yamless">What is YAMLess?</h2>
+<p>YAMLess is an <strong>Infrastructure from Code (IFC)</strong> tool.
+Given a code repository, it produces a complete, policy-validated Azure
+Terraform workspace — with no configuration files, no schema to fill in,
+and no IaC expertise required from the developer.</p>
+<p>The pipeline has four stages:</p>
+<pre><code>Repo on disk
+    │
+    ▼
+┌─────────────────────┐
+│  1. Static Analyzer │  Reads Dockerfile, package.json / requirements.txt /
+│                     │  pom.xml, .env files, local.settings.json, source code.
+│                     │  No execution, no API calls. Produces a typed AppProfile.
+└──────────┬──────────┘
+           │  (fires only when any field is low/medium confidence)
+           ▼
+┌─────────────────────┐
+│  2. LLM Gap-Filler  │  Claude reads relevant source files and fills in what
+│                     │  static analysis couldn&#39;t determine — via structured
+│                     │  tool use only, no free-form parsing.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  3. Renderer        │  Jinja2 root templates + static Terraform modules →
+│                     │  ready-to-apply workspace. Outputs Container Apps
+│                     │  or AKS, selected by --target.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  4. Validator       │  checkov policy-as-code. Security posture is enforced
+│                     │  by static module files — the LLM cannot affect it.
+└─────────────────────┘</code></pre>
+<hr />
+<h2 id="applying-yamless-to-pos-service-business-day-scheduler">Applying
+YAMLess to pos-service-business-day-scheduler</h2>
+<p><a
+href="https://github.com/krogertechnology/pos-service-business-day-scheduler">pos-service-business-day-scheduler</a>
+is a Kroger NGPOS service that publishes business-day records to a
+downstream batch service for six US timezones (Eastern, Central,
+Mountain, Pacific, Hawaii, Alaska). It is a <strong>Python 3.13 Azure
+Durable Functions</strong> application: six cron-scheduled timer
+triggers fire at midnight in each timezone, each starting a Durable
+orchestrator that calls an activity function which HTTP POSTs to an
+internal batch service using PingOne OAuth tokens for
+authentication.</p>
+<p>The service has no database, no queue, no blob storage, and no
+inbound HTTP endpoint — a purely outbound, schedule-driven
+integration.</p>
+<h3 id="command-run">Command run</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">yamless</span> generate /tmp/pos-service-business-day-scheduler <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--no-llm</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--target</span> aks <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out-dir</span> ~/yamless-outputs/business-day-scheduler-infra <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--validate</span></span></code></pre></div>
+<h3 id="profile-detected">Profile detected</h3>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 36%" />
+<col style="width: 29%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detected value</th>
+<th>Confidence</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td><code>python</code></td>
+<td>high</td>
+<td>FROM
+<code>mcr.microsoft.com/azure-functions/python:4-python3.13</code></td>
+</tr>
+<tr>
+<td>Runtime version</td>
+<td><code>3.13</code></td>
+<td>high</td>
+<td><code>python3.13</code> extracted from image tag</td>
+</tr>
+<tr>
+<td>Shape</td>
+<td><code>cron-job</code></td>
+<td>high</td>
+<td><code>azure-functions-durable</code> in requirements.txt</td>
+</tr>
+<tr>
+<td>Scale trigger</td>
+<td><code>schedule</code></td>
+<td>—</td>
+<td>Derived from cron shape</td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>null</code></td>
+<td>—</td>
+<td>Correct — no HTTP server, headless timer worker</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>null</code></td>
+<td>—</td>
+<td>Correct — no DB dependencies</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>Correct — no queue packages</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>10 found</td>
+<td>high</td>
+<td>All from <code>local.settings.json</code>: OAuth credentials,
+PingOne OIDC config, batch service URL</td>
+</tr>
+</tbody>
+</table>
+<p>Secrets detected: - <code>OAUTH_USERNAME</code>,
+<code>OAUTH_PASSWORD</code> — service account credentials -
+<code>PING_CLIENT_ID</code>, <code>PING_ISSUER_URI</code>,
+<code>PING_REDIRECT_URI</code>, <code>PING_SCOPE</code>,
+<code>PING_GRANT_TYPE</code>, <code>PING_RESPONSE_MODE</code>,
+<code>PING_RESPONSE_TYPE</code> — PingOne OIDC flow config -
+<code>BATCH_SERVICE_BASE_URL</code> — downstream service endpoint</p>
+<h3 id="output-generated-aks-target">Output generated (AKS target)</h3>
+<pre><code>business-day-scheduler-infra/
+├── terraform/
+│   ├── main.tf              # VNet, AKS cluster, Workload Identity, Key Vault
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── providers.tf
+│   └── modules/
+│       ├── vnet/            # VNet + AKS subnet
+│       ├── aks_cluster/     # AKS with OIDC, Workload Identity, Key Vault CSI, KEDA
+│       ├── aks_workload_identity/  # Federated credential + KV Secrets User role
+│       └── keyvault/        # Key Vault with RBAC + network deny-all
+└── k8s/
+    ├── namespace.yaml
+    ├── service-account.yaml         # Workload Identity annotation
+    ├── secret-provider-class.yaml   # All 10 secrets mounted via CSI driver
+    ├── deployment.yaml              # No HTTP probes — correct for a scheduled worker
+    └── network-policy.yaml          # Default-deny; no ingress allow rule</code></pre>
+<p>Note: <code>service.yaml</code>, <code>ingress.yaml</code>, and
+<code>hpa.yaml</code> are <strong>not generated</strong> — correct for
+<code>cron-job</code> shape.</p>
+<p><strong>43/43 policy checks passed</strong> — the output is valid and
+deployable.</p>
+<h3 id="what-the-output-correctly-captured">What the output correctly
+captured</h3>
+<ul>
+<li>Cron-job shape: no Service, Ingress, or HPA Kubernetes
+manifests</li>
+<li>All 10 runtime secrets projected through Key Vault CSI driver into
+the pod as environment variables</li>
+<li>Workload Identity for pod-level Key Vault access (no long-lived
+credentials)</li>
+<li>AKS Workload Identity with federated credential scoped to the app’s
+Kubernetes service account</li>
+<li>Key Vault network deny-all with RBAC-only access</li>
+<li>Runtime tag <code>python</code> on all Azure resources</li>
+<li>All security golden standards: TLS 1.2, public network access
+disabled, consistent tagging</li>
+</ul>
+<h3 id="what-was-missed">What was missed</h3>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr>
+<th>Missing</th>
+<th>Root cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubernetes CronJob resource</td>
+<td>The output uses a Deployment for the pod spec, but a true
+timer-triggered workload should use a Kubernetes <code>CronJob</code>
+manifest (or rely on Azure Functions’ built-in KEDA timer trigger for
+AKS). The generated Deployment runs continuously and waits for the
+Durable Functions host to fire the timer — correct behaviour but not the
+idiomatic Kubernetes pattern.</td>
+</tr>
+<tr>
+<td>No infrastructure for the batch service endpoint</td>
+<td><code>BATCH_SERVICE_BASE_URL</code> is stored in Key Vault as a
+secret but the downstream service itself is external — yamless correctly
+doesn’t try to provision it.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="what-this-test-case-drove-into-yamless">What this test case
+drove into YAMLess</h2>
+<h3 id="wrong-python-version-from-azure-functions-image-tags">1. Wrong
+Python version from Azure Functions image tags</h3>
+<p><strong>Root cause:</strong> The base image tag
+<code>4-python3.13</code> caused the existing pattern
+<code>python[:\-](\d[\d.]*)</code> to match <code>python:</code> and
+capture <code>4</code> (the Azure Functions host version) as the Python
+version, returning <code>runtime_version: "4"</code> instead of
+<code>"3.13"</code>.</p>
+<p><strong>Fix applied:</strong> Added <code>r"python(\d+\.\d+)"</code>
+(requires a decimal point — matches <code>python3.13</code> but not
+<code>python:4</code>) before the existing colon/dash pattern. This
+correctly captures <code>3.13</code> for any <code>X-pythonY.Z</code>
+style Azure Functions image tag.</p>
+<hr />
+<h3 id="local.settings.json-was-not-scanned">2.
+<code>local.settings.json</code> was not scanned</h3>
+<p><strong>Root cause:</strong> Azure Functions uses
+<code>local.settings.json</code> (under the <code>Values</code> key)
+instead of a <code>.env</code> file for local configuration. The env
+scanner only read <code>.env*</code> glob patterns. All 10 secrets were
+present in <code>local.settings.json</code> but returned
+<code>secrets: []</code>.</p>
+<p><strong>Fix applied:</strong> Added
+<code>_scan_local_settings()</code> to the env scanner. It reads
+<code>local.settings.json</code> if present, parses the JSON, and yields
+all uppercase keys from <code>Values</code>. Combined with the broader
+secret patterns below, all 10 environment variables were detected.</p>
+<hr />
+<h3
+id="secret-patterns-were-too-narrow-for-oauthoidcendpoint-variables">3.
+Secret patterns were too narrow for OAuth/OIDC/endpoint variables</h3>
+<p><strong>Root cause:</strong> <code>_INFRA_SECRET_PATTERNS</code> was
+focused on infrastructure credential names (<code>DATABASE_URL</code>,
+<code>STRIPE_*</code>, <code>JWT_SECRET</code>, etc.) and missed the
+OAuth/PingOne variable naming conventions used by this service:
+<code>OAUTH_PASSWORD</code>, <code>PING_CLIENT_ID</code>,
+<code>BATCH_SERVICE_BASE_URL</code>.</p>
+<p><strong>Fix applied:</strong> Added three broader patterns: -
+<code>\w+_(PASSWORD|SECRET|TOKEN|KEY)$</code> — catches any credential
+by suffix - <code>(OAUTH|OIDC|PING|AUTH|SSO)_\w+</code> — catches any
+OAuth/OIDC/SSO config var by prefix -
+<code>\w+_(BASE_URL|ENDPOINT|URI)$</code> — catches external service
+endpoint vars</p>
+<hr />
+<h3 id="azure-functions-durable-had-no-shape-hint">4.
+<code>azure-functions-durable</code> had no shape hint</h3>
+<p><strong>Root cause:</strong> The <code>azure-functions-durable</code>
+package was not in any shape table, so the shape fell to
+<code>unknown</code> with <code>low</code> confidence. Without the LLM
+gap-filler (<code>--no-llm</code>), no shape could be inferred
+statically.</p>
+<p><strong>Fix applied:</strong> Added
+<code>azure-functions-durable</code> to <code>_CRON_PACKAGES</code>.
+Durable Functions are overwhelmingly used for timer-orchestrated or
+batch-processing patterns; the LLM gap-filler can correct the rare
+HTTP-triggered durable function case (confidence would remain
+<code>medium</code> for LLM correction).</p>
+<hr />
+<h2 id="learnings-for-yamless">Learnings for YAMLess</h2>
+<h3
+id="azure-functions-is-a-first-class-pattern-cronjob-manifest-would-complete-the-picture">Azure
+Functions is a first-class pattern — CronJob manifest would complete the
+picture</h3>
+<p>The generated output is structurally correct and policy-compliant.
+However, the Kubernetes manifests emit a <code>Deployment</code> for a
+workload that is fundamentally schedule-driven. A more idiomatic output
+for a cron-job shape on AKS would be a <code>CronJob</code> manifest
+rather than a <code>Deployment</code> — or alternatively, configure
+KEDA’s timer trigger to scale the Deployment from zero between scheduled
+runs.</p>
+<p>This is a rendering concern, not an analysis concern. The shape is
+detected correctly; the renderer just maps all shapes to Deployment
+today.</p>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>This service was detected correctly end-to-end without the LLM:</p>
+<ul>
+<li><strong>Runtime</strong>: Python 3.13 (from a non-standard Azure
+Functions image tag pattern)</li>
+<li><strong>Shape</strong>: cron-job (from
+<code>azure-functions-durable</code> in requirements)</li>
+<li><strong>Secrets</strong>: all 10 (from
+<code>local.settings.json</code>, previously unscanned)</li>
+</ul>
+<p>The generated AKS Terraform and Kubernetes manifests are structurally
+correct for a headless scheduled workload. <strong>43/43 checkov checks
+pass.</strong> All secrets are projected through Key Vault → CSI driver
+→ pod environment variables with no hardcoded credentials anywhere in
+the generated output.</p>
+<p>Four static analyzer improvements were shipped as a direct result of
+this test: Azure Functions image version extraction,
+<code>local.settings.json</code> scanning, broader OAuth/endpoint secret
+patterns, and <code>azure-functions-durable</code> shape hint.</p>
+<hr />
+<p><em>Generated by YAMLess —
+https://github.com/zafar-ahmed-kr/YAMLess</em></p>
+</body>
+</html>

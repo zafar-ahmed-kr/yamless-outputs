@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pos-service-instore-rems-ingest-manager-default-deny
+  namespace: pos-service-instore-rems-ingest-manager
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: pos-service-instore-rems-ingest-manager
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+  egress:
+    # Allow all outbound (DNS, Azure APIs, backing services)
+    - {}

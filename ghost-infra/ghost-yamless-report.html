@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>YAMLess Case Study — TryGhost/Ghost</title>
+  <style>
+
+html {
+color: #1a1a1a;
+background-color: #fdfdfd;
+}
+body {
+margin: 0 auto;
+max-width: 36em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 12px;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+html {
+background-color: white;
+}
+body {
+background-color: transparent;
+color: black;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+a {
+color: #1a1a1a;
+}
+a:visited {
+color: #1a1a1a;
+}
+img {
+max-width: 100%;
+}
+svg {
+height: auto;
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+white-space: pre-wrap;
+font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+font-size: 85%;
+margin: 0;
+hyphens: manual;
+}
+pre {
+margin: 1em 0;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+.sourceCode {
+background-color: transparent;
+overflow: visible;
+}
+hr {
+border: none;
+border-top: 1px solid #1a1a1a;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid #1a1a1a;
+border-bottom: 1px solid #1a1a1a;
+}
+th {
+border-top: 1px solid #1a1a1a;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style>
+body { font-family: -apple-system, Helvetica Neue, sans-serif; max-width: 820px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; font-size: 14px; line-height: 1.7; }
+h1 { font-size: 26px; border-bottom: 2px solid #0066cc; padding-bottom: 8px; }
+h2 { font-size: 18px; color: #0066cc; margin-top: 36px; }
+h3 { font-size: 15px; margin-top: 24px; }
+code, pre { font-family: Menlo, monospace; font-size: 12px; background: #f5f5f5; border-radius: 4px; }
+pre { padding: 12px; overflow-x: auto; border-left: 3px solid #0066cc; }
+code { padding: 2px 5px; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+th { background: #0066cc; color: white; padding: 8px 12px; text-align: left; }
+td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; }
+tr:nth-child(even) { background: #f9f9f9; }
+blockquote { border-left: 3px solid #ccc; margin: 0; padding-left: 16px; color: #555; }
+hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+a { color: #0066cc; }
+@media print { body { max-width: 100%; margin: 0; } }
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">YAMLess Case Study — TryGhost/Ghost</h1>
+</header>
+<h1 id="yamless-generating-azure-infrastructure-from-code">YAMLess:
+Generating Azure Infrastructure from Code</h1>
+<h3 id="case-study-tryghostghost">Case Study — TryGhost/Ghost</h3>
+<hr />
+<h2 id="what-is-yamless">What is YAMLess?</h2>
+<p>YAMLess is an <strong>Infrastructure from Code (IFC)</strong> tool.
+Given a code repository, it produces a complete, policy-validated Azure
+Terraform workspace — with no configuration files, no schema to fill in,
+and no IaC expertise required from the developer.</p>
+<p>The pipeline has four stages:</p>
+<pre><code>Repo on disk
+    │
+    ▼
+┌─────────────────────┐
+│  1. Static Analyzer │  Reads Dockerfile, package.json / requirements.txt,
+│                     │  .env files, source code. No execution, no API calls.
+│                     │  Produces a typed AppProfile with confidence scores.
+└──────────┬──────────┘
+           │  (fires only when any field is low/medium confidence)
+           ▼
+┌─────────────────────┐
+│  2. LLM Gap-Filler  │  Claude reads relevant source files and fills in what
+│                     │  static analysis couldn&#39;t determine — via structured
+│                     │  tool use only, no free-form parsing.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  3. Renderer        │  Jinja2 root templates + static Terraform modules →
+│                     │  ready-to-apply workspace. Outputs Container Apps
+│                     │  or AKS, selected by --target.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  4. Validator       │  checkov policy-as-code. Security posture is enforced
+│                     │  by static module files — the LLM cannot affect it.
+└─────────────────────┘</code></pre>
+<hr />
+<h2 id="applying-yamless-to-tryghostghost">Applying YAMLess to
+TryGhost/Ghost</h2>
+<p><a href="https://github.com/TryGhost/Ghost">Ghost</a> is a
+widely-used open-source publishing platform: Node.js, MySQL or SQLite,
+optional S3-compatible storage, Stripe payments, and a rich plugin
+ecosystem. It is structured as a <strong>pnpm monorepo</strong> with the
+core application at <code>ghost/</code> rather than the repo root.</p>
+<h3 id="command-run">Command run</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">yamless</span> generate /tmp/ghost <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--no-llm</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out-dir</span> ~/yamless-outputs/ghost-infra <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--validate</span></span></code></pre></div>
+<h3 id="profile-detected">Profile detected</h3>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 36%" />
+<col style="width: 29%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detected value</th>
+<th>Confidence</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td><code>node</code></td>
+<td>medium</td>
+<td>Detected from Dockerfile, but multi-stage build reduces
+confidence</td>
+</tr>
+<tr>
+<td>Runtime version</td>
+<td><code>null</code></td>
+<td>—</td>
+<td>Multi-stage Dockerfile; runtime FROM is not the first stage</td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>2368</code></td>
+<td>high</td>
+<td><code>EXPOSE 2368</code> in Dockerfile</td>
+</tr>
+<tr>
+<td>Shape</td>
+<td><code>http-service</code></td>
+<td>medium</td>
+<td>HTTP framework not visible at root; port presence used as
+signal</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>null</code></td>
+<td>—</td>
+<td><code>mysql2</code> is in <code>ghost/package.json</code>, not the
+root manifest</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td><code>false</code></td>
+<td>—</td>
+<td><code>@aws-sdk/client-s3</code> is in
+<code>ghost/package.json</code>, not root</td>
+</tr>
+<tr>
+<td>Cache</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>Not detected</td>
+</tr>
+<tr>
+<td>Ingress</td>
+<td><code>external: true</code>, port <code>2368</code></td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td><code>GITHUB_TOKEN</code>, <code>STRIPE_SECRET_KEY</code></td>
+<td>high</td>
+<td>Only 2 of ~15 real secrets detected</td>
+</tr>
+</tbody>
+</table>
+<h3 id="output-generated">Output generated</h3>
+<pre><code>ghost-infra/
+├── main.tf              # Identity, KV, Container App Env, Container App
+├── variables.tf
+├── outputs.tf
+├── providers.tf
+└── modules/
+    ├── managed_identity/
+    ├── keyvault/
+    ├── container_app_env/
+    └── container_app/      # No database or storage — not detected</code></pre>
+<p><strong>22/22 policy checks passed</strong> — the output is valid and
+deployable, but incomplete: no database and no storage module were
+generated because neither was detected from the root package
+manifest.</p>
+<h3 id="what-the-output-correctly-captured">What the output correctly
+captured</h3>
+<ul>
+<li>External HTTP ingress on port 2368</li>
+<li>Managed Identity with Key Vault wiring</li>
+<li>Stripe and GitHub secrets surfaced and provisioned in Key Vault</li>
+<li>Correct scaling profile (HTTP trigger, 1–10 replicas)</li>
+<li>All security golden standards: RBAC-only auth, TLS 1.2, KV firewall
+deny-all, consistent tagging</li>
+</ul>
+<h3 id="what-was-missed">What was missed</h3>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr>
+<th>Missing</th>
+<th>Root cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MySQL database module</td>
+<td><code>mysql2</code> lives in <code>ghost/package.json</code>;
+analyzer only reads root</td>
+</tr>
+<tr>
+<td>Storage module</td>
+<td><code>@aws-sdk/client-s3</code> lives in
+<code>ghost/package.json</code>; same issue</td>
+</tr>
+<tr>
+<td>13 additional secrets</td>
+<td>Ghost’s env vars are in nested config files, not a root
+<code>.env</code></td>
+</tr>
+<tr>
+<td>Runtime version</td>
+<td>Multi-stage Dockerfile — the <code>node:xx</code> base is in a
+build-only stage</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="learnings-for-yamless">Learnings for YAMLess</h2>
+<h3 id="monorepo-support-is-a-hard-requirement">1. Monorepo support is a
+hard requirement</h3>
+<p><strong>What happened:</strong> Ghost uses a pnpm workspace. The root
+<code>package.json</code> is the workspace manifest — it declares
+workspaces but carries no application dependencies. The actual app lives
+at <code>ghost/package.json</code>, where <code>mysql2</code>,
+<code>@aws-sdk/client-s3</code>, <code>bookshelf</code>, and
+<code>knex</code> are all present.</p>
+<p>YAMLess reads only the root <code>package.json</code> and found
+nothing, resulting in <code>database: null</code> and
+<code>storage: false</code> — both silently wrong.</p>
+<p><strong>Proposed fix:</strong> Before reading
+<code>package.json</code>, detect monorepo indicators:</p>
+<table>
+<colgroup>
+<col style="width: 44%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr>
+<th>Indicator</th>
+<th>Monorepo type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pnpm-workspace.yaml</code></td>
+<td>pnpm</td>
+</tr>
+<tr>
+<td><code>nx.json</code></td>
+<td>Nx</td>
+</tr>
+<tr>
+<td><code>lerna.json</code></td>
+<td>Lerna</td>
+</tr>
+<tr>
+<td><code>workspaces</code> field in root <code>package.json</code></td>
+<td>Yarn/npm workspaces</td>
+</tr>
+<tr>
+<td><code>packages/</code> or <code>apps/</code> directory with nested
+<code>package.json</code></td>
+<td>Generic</td>
+</tr>
+</tbody>
+</table>
+<p>When a monorepo is detected, walk inward to find the package that
+matches the app name (or the deepest single candidate), and run
+dependency analysis against that package.</p>
+<p><strong>Impact:</strong> This single change would have correctly
+detected MySQL and S3 storage for Ghost.</p>
+<hr />
+<h3 id="multi-stage-dockerfile-parsing-is-needed-for-accurate-runtime-detection">2.
+Multi-stage Dockerfile parsing is needed for accurate runtime
+detection</h3>
+<p><strong>What happened:</strong> Ghost’s Dockerfile uses named build
+stages. The first <code>FROM</code> is a build stage; the actual runtime
+stage (<code>FROM node:xx-alpine</code>) comes later. YAMLess reads only
+the first <code>FROM</code> and the first <code>EXPOSE</code>, which
+gives a <code>medium</code>-confidence runtime and a missing
+version.</p>
+<p><strong>Proposed fix:</strong> Parse all <code>FROM</code>
+directives, identify the final stage (the one not referenced by any
+other <code>AS &lt;stage&gt;</code> target), and read runtime and
+version from that stage.</p>
+<hr />
+<h3 id="mysqlmariadb-needs-a-renderer-module">3. MySQL/MariaDB needs a
+renderer module</h3>
+<p><strong>What happened:</strong> Even if the analyzer had correctly
+detected <code>mysql2</code>, the renderer has no MySQL module. The
+profile would carry <code>database: mysql</code> and silently skip the
+database module block.</p>
+<p><strong>Proposed fix:</strong> Add an Azure Database for MySQL
+Flexible Server module to both the Container Apps and AKS renderers,
+mirroring the existing Postgres module.</p>
+<hr />
+<h3 id="secret-scanning-should-recurse-into-monorepo-packages">4. Secret
+scanning should recurse into monorepo packages</h3>
+<p><strong>What happened:</strong> Ghost has ~15 meaningful environment
+variables (<code>database__connection__password</code>,
+<code>mail__transport</code>, <code>STRIPE_WEBHOOK_SECRET</code>, etc.)
+spread across nested config files and <code>.env.example</code> files.
+Only 2 were found because the env scanner looks at the repo root
+only.</p>
+<p><strong>Proposed fix:</strong> When a monorepo is detected, extend
+env scanning into subdirectories and add a parser for dot-notation
+config keys (<code>database__connection__host</code>) used by Ghost’s
+config library.</p>
+<hr />
+<h2 id="improvement-roadmap">Improvement Roadmap</h2>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 30%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Change</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>High</td>
+<td>Monorepo detection + inner package.json resolution</td>
+<td>Fixes dependency and secret gaps for Ghost, Redash, Plane, and most
+modern JS repos</td>
+</tr>
+<tr>
+<td>High</td>
+<td>MySQL/MariaDB Terraform module</td>
+<td>Unblocks a large class of apps that don’t use Postgres</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Multi-stage Dockerfile parser</td>
+<td>Accurate runtime version for all containerised apps</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Recursive secret scanning with dot-notation config support</td>
+<td>More complete secret inventory for Node apps using config
+libraries</td>
+</tr>
+<tr>
+<td>Low</td>
+<td>Redis/cache Terraform module (Azure Cache for Redis)</td>
+<td>Detected in Outline and Ghost but not provisioned</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>Ghost is a valuable test case precisely because it breaks assumptions
+that hold for simpler repos. YAMLess produced valid, policy-passing
+Terraform — but the output is incomplete due to the monorepo structure
+hiding the real dependency manifest. The tool’s confidence scoring
+worked correctly (medium confidence on runtime and shape correctly
+triggered the LLM gap-filler flag), but the gap-filler cannot compensate
+for data that was never collected.</p>
+<p>The fix is upstream in the static analyzer: teach it to recognise
+monorepo layouts and walk to the right package before classifying
+dependencies.</p>
+<hr />
+<p><em>Generated by YAMLess —
+https://github.com/zafar-ahmed-kr/YAMLess</em></p>
+</body>
+</html>

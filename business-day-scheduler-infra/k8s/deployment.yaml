@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pos-service-business-day-scheduler
+  namespace: pos-service-business-day-scheduler
+  labels:
+    app.kubernetes.io/name: pos-service-business-day-scheduler
+    app.kubernetes.io/managed-by: yamless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pos-service-business-day-scheduler
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pos-service-business-day-scheduler
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: pos-service-business-day-scheduler
+      containers:
+        - name: pos-service-business-day-scheduler
+          image: ${var.image}
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets
+              readOnly: true
+          env:
+            - name: BATCH_SERVICE_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: batch-service-base-url
+                  key: value
+            - name: OAUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-password
+                  key: value
+            - name: OAUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-username
+                  key: value
+            - name: PING_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ping-client-id
+                  key: value
+            - name: PING_GRANT_TYPE
+              valueFrom:
+                secretKeyRef:
+                  name: ping-grant-type
+                  key: value
+            - name: PING_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ping-issuer-uri
+                  key: value
+            - name: PING_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ping-redirect-uri
+                  key: value
+            - name: PING_RESPONSE_MODE
+              valueFrom:
+                secretKeyRef:
+                  name: ping-response-mode
+                  key: value
+            - name: PING_RESPONSE_TYPE
+              valueFrom:
+                secretKeyRef:
+                  name: ping-response-type
+                  key: value
+            - name: PING_SCOPE
+              valueFrom:
+                secretKeyRef:
+                  name: ping-scope
+                  key: value
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: pos-service-business-day-scheduler-secrets

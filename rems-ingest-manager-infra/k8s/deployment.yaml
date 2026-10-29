@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pos-service-instore-rems-ingest-manager
+  namespace: pos-service-instore-rems-ingest-manager
+  labels:
+    app.kubernetes.io/name: pos-service-instore-rems-ingest-manager
+    app.kubernetes.io/managed-by: yamless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pos-service-instore-rems-ingest-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pos-service-instore-rems-ingest-manager
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: pos-service-instore-rems-ingest-manager
+      containers:
+        - name: pos-service-instore-rems-ingest-manager
+          image: ${var.image}
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets
+              readOnly: true
+          env:
+            - name: SERVICEBUS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: servicebus-connection-string
+                  key: value
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: pos-service-instore-rems-ingest-manager-secrets
