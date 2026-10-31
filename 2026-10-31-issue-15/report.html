@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<style>
+body { font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
+h1 { color: #2d5a27; border-bottom: 2px solid #2d5a27; padding-bottom: 8px; }
+h2 { color: #3a3a3a; margin-top: 32px; }
+h3 { color: #555; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #f0f4f0; font-weight: 600; }
+code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+</style>
+</head><body>
+<h1>YAMLess Test Report — 2026-10-31 (issue #15)</h1>
+<h2>Summary</h2>
+<p><strong>147/147 tests passed</strong> across all test suites.</p>
+<hr />
+<h2>Issue #15 — .NET / C# Runtime Support</h2>
+<h3>Problem</h3>
+<p>YAMLess returned <code>runtime: unknown</code>, <code>shape: unknown</code>, no dependencies, and <code>secrets: []</code> on .NET repos. Two root causes:
+1. No NuGet / <code>.csproj</code> parser
+2. <code>_find_dockerfile</code> only checked the repo root — .NET solutions conventionally put <code>Dockerfile</code> inside the API project subdirectory</p>
+<h3>Changes</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>profile.py</code></td>
+<td><code>Runtime.DOTNET = "dotnet"</code></td>
+</tr>
+<tr>
+<td><code>dockerfile.py</code></td>
+<td><code>dotnet/aspnet\|runtime\|sdk</code> image patterns; <code>_find_dockerfile</code> searches one level deep, prefers <code>api</code>/<code>web</code> dirs</td>
+</tr>
+<tr>
+<td><code>dependencies.py</code></td>
+<td>NuGet package maps (Npgsql, StackExchange.Redis, AWSSDK.S3/SQS, Confluent.Kafka, etc.); <code>get_dotnet_package_names()</code> rglobs <code>*.csproj</code> skipping test projects; <code>_parse_dotnet()</code></td>
+</tr>
+<tr>
+<td><code>env_scanner.py</code></td>
+<td><code>_scan_appsettings()</code> — flattens secret leaf keys + <code>${VAR}</code> placeholders from <code>appsettings*.json</code></td>
+</tr>
+<tr>
+<td><code>runner.py</code></td>
+<td><code>*.sln</code> / <code>*/*.csproj</code> detection in <code>_infer_runtime_from_files</code>; dotnet branch in <code>all_dep_names</code> dispatch</td>
+</tr>
+<tr>
+<td><code>tests/fixtures/dotnet-api/</code></td>
+<td>Multi-stage <code>Api/Dockerfile</code> (aspnet:8.0), <code>Api/Api.csproj</code>, <code>Api/appsettings.json</code></td>
+</tr>
+</tbody>
+</table>
+<h3>Detection coverage</h3>
+<p><strong>Databases:</strong> Npgsql, Npgsql.EntityFrameworkCore.PostgreSQL → postgres; MySqlConnector, Pomelo.EntityFrameworkCore.MySql → mysql; Microsoft.Data.SqlClient → sqlserver; Microsoft.Azure.Cosmos → cosmos</p>
+<p><strong>Cache:</strong> StackExchange.Redis, Microsoft.Extensions.Caching.StackExchangeRedis, NRedisStack</p>
+<p><strong>Storage:</strong> Azure.Storage.Blobs, AWSSDK.S3, Google.Cloud.Storage.V1</p>
+<p><strong>Queue:</strong> Azure.Messaging.ServiceBus, AWSSDK.SQS, RabbitMQ.Client, MassTransit</p>
+<p><strong>Kafka:</strong> Confluent.Kafka, MassTransit.Kafka</p>
+<p><strong>HTTP shape:</strong> Swashbuckle.AspNetCore, Microsoft.AspNetCore.OpenApi, Carter, FastEndpoints, NSwag.AspNetCore</p>
+<h3>New Tests (11)</h3>
+<ul>
+<li><code>test_dotnet_runtime_detected_from_dockerfile</code> — aspnet:8.0 image → DOTNET, version 8.0</li>
+<li><code>test_dotnet_nested_dockerfile_found</code> — Api/Dockerfile resolved from fixture</li>
+<li><code>test_dotnet_nuget_packages_parsed</code> — all 5 packages from Api.csproj</li>
+<li><code>test_dotnet_full_profile</code> — runtime, version, port, shape all correct</li>
+<li><code>test_dotnet_database_detected</code> — Npgsql.EntityFrameworkCore.PostgreSQL → postgres</li>
+<li><code>test_dotnet_cache_detected</code> — StackExchange.Redis → cache=True</li>
+<li><code>test_dotnet_storage_detected</code> — AWSSDK.S3 → storage=True</li>
+<li><code>test_dotnet_queue_detected</code> — AWSSDK.SQS → queue=True</li>
+<li><code>test_dotnet_appsettings_secrets_scanned</code> — JWT_SECRET, REDIS_URL from appsettings.json</li>
+<li><code>test_dotnet_inferred_from_csproj_without_dockerfile</code> — runtime inferred from Src/MyApp.csproj</li>
+<li><code>test_dotnet_test_projects_excluded</code> — App.Tests.csproj ignored</li>
+</ul>
+<hr />
+<h2>Test Counts by Suite</h2>
+<table>
+<thead>
+<tr>
+<th>Suite</th>
+<th>Tests</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test_analyzer.py</td>
+<td>37</td>
+<td>✓ All pass</td>
+</tr>
+<tr>
+<td>test_arch_drift.py</td>
+<td>25</td>
+<td>✓ All pass</td>
+</tr>
+<tr>
+<td>test_env_scanner.py</td>
+<td>18</td>
+<td>✓ All pass</td>
+</tr>
+<tr>
+<td>test_gap_filler.py</td>
+<td>2</td>
+<td>✓ All pass</td>
+</tr>
+<tr>
+<td>test_renderer.py</td>
+<td>62</td>
+<td>✓ All pass</td>
+</tr>
+<tr>
+<td>test_validator.py</td>
+<td>3</td>
+<td>✓ All pass</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>147</strong></td>
+<td><strong>✓ All pass</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Branch</h2>
+<p>Committed to <code>develop</code>, merged to <code>main</code> (commit <code>77258f3</code>).</p>
+</body></html>
