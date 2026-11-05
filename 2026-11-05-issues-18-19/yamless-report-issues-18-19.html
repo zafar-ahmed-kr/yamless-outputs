@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YAMLess — Implementation & Test Report — Issues #18 and #19</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.6; }
+  h1 { font-size: 1.8em; border-bottom: 3px solid #0066cc; padding-bottom: 8px; color: #003580; }
+  h2 { font-size: 1.3em; color: #003580; border-bottom: 1px solid #cce0ff; padding-bottom: 4px; margin-top: 2em; }
+  h3 { font-size: 1.05em; color: #005099; }
+  .meta { background: #f0f6ff; border-left: 4px solid #0066cc; padding: 10px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+  .meta p { margin: 4px 0; }
+  .badge-pass { background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.9em; }
+  th { background: #003580; color: white; padding: 8px 12px; text-align: left; }
+  td { padding: 7px 12px; border-bottom: 1px solid #dde5f0; }
+  tr:nth-child(even) td { background: #f5f8ff; }
+  code { background: #f4f4f4; border: 1px solid #ddd; padding: 1px 5px; border-radius: 3px; font-family: "Courier New", monospace; font-size: 0.88em; }
+  .summary-box { background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 12px 20px; margin: 1em 0; }
+  .summary-box strong { color: #155724; font-size: 1.1em; }
+  footer { margin-top: 3em; border-top: 1px solid #ccc; padding-top: 10px; color: #666; font-size: 0.85em; }
+</style>
+</head>
+<body>
+
+<h1>YAMLess — Implementation &amp; Test Report</h1>
+<h2 style="border:none;margin-top:0;font-size:1.1em;color:#555;">Issues #18 and #19</h2>
+
+<div class="meta">
+  <p><strong>Date:</strong> 2026-11-05</p>
+  <p><strong>Commit:</strong> <code>9dc0061</code></p>
+  <p><strong>Branch:</strong> <code>develop</code></p>
+  <p><strong>Result:</strong> <span class="badge-pass">181 PASSED &mdash; 0 FAILED</span></p>
+</div>
+
+<h2>Summary</h2>
+<p>Two issues were resolved in commit <code>9dc0061</code> on the <code>develop</code> branch of the YAMLess project. The changes extend the analyzer's app-name normalization logic and add source-code scanning support for C#, Java, and Kotlin environments.</p>
+
+<h2>Issue #18 — App Name Slugification</h2>
+
+<h3>Problem</h3>
+<p>App names derived from repository names could contain characters invalid in Azure resource names (dots, underscores, uppercase letters, leading/trailing dashes). Storage account names and Key Vault names have especially strict length and character constraints.</p>
+
+<h3>Implementation</h3>
+<p><strong><code>src/yamless/analyzer/runner.py</code></strong> — <code>_slugify()</code> function added:</p>
+<ul>
+  <li>Lowercases the input string</li>
+  <li>Replaces runs of non-alphanumeric characters with a single <code>-</code></li>
+  <li>Strips leading and trailing dashes</li>
+  <li>Truncates to 40 characters</li>
+</ul>
+<p><strong>Storage module</strong> (<code>modules/storage/main.tf</code>, Container Apps &amp; AKS): strips both <code>-</code> and <code>.</code> before the 24-character substr truncation.</p>
+<p><strong>Key Vault module</strong> (<code>modules/keyvault/main.tf</code>, Container Apps &amp; AKS): uses <code>trimsuffix(trimprefix(...))</code> to prevent trailing or leading dashes after truncation.</p>
+
+<h3>New Tests — Issue #18</h3>
+<table>
+  <tr><th>Test</th><th>File</th><th>Description</th></tr>
+  <tr><td><code>test_slugify_plain_name</code></td><td>test_analyzer.py</td><td>Simple lowercase name passes through unchanged</td></tr>
+  <tr><td><code>test_slugify_lowercases</code></td><td>test_analyzer.py</td><td>Uppercase letters are lowercased</td></tr>
+  <tr><td><code>test_slugify_dots_replaced_with_dashes</code></td><td>test_analyzer.py</td><td>Dots are converted to dashes</td></tr>
+  <tr><td><code>test_slugify_underscores_replaced</code></td><td>test_analyzer.py</td><td>Underscores are converted to dashes</td></tr>
+  <tr><td><code>test_slugify_leading_trailing_dashes_stripped</code></td><td>test_analyzer.py</td><td>Leading/trailing dashes removed</td></tr>
+  <tr><td><code>test_slugify_multiple_separators_collapsed</code></td><td>test_analyzer.py</td><td>Consecutive separators collapsed to single dash</td></tr>
+  <tr><td><code>test_slugify_truncates_to_40_chars</code></td><td>test_analyzer.py</td><td>Output truncated at 40 characters</td></tr>
+  <tr><td><code>test_slugify_dotted_repo_name</code></td><td>test_analyzer.py</td><td>Real-world dotted repo name slugified correctly</td></tr>
+</table>
+
+<h2>Issue #19 — C# and Java / Kotlin Environment Variable Scanning</h2>
+
+<h3>Problem</h3>
+<p>The environment variable scanner only handled Python, Node.js, and config-file patterns. Applications written in C# or Java/Kotlin that read secrets via <code>Environment.GetEnvironmentVariable</code>, <code>IConfiguration</code>, or Spring <code>@Value</code> annotations were not discovered.</p>
+
+<h3>Implementation</h3>
+<p><strong><code>src/yamless/analyzer/env_scanner.py</code></strong> — <code>_scan_source_files()</code> extended to cover <code>.cs</code>, <code>.java</code>, and <code>.kt</code> files:</p>
+<table>
+  <tr><th>Pattern</th><th>Language</th><th>Emitted Key</th></tr>
+  <tr><td><code>Environment.GetEnvironmentVariable("KEY")</code></td><td>C#</td><td><code>KEY</code></td></tr>
+  <tr><td><code>System.getenv("KEY")</code></td><td>C# / Java</td><td><code>KEY</code></td></tr>
+  <tr><td><code>configuration["Section:Key"]</code></td><td>C# (IConfiguration)</td><td><code>SECTION__KEY</code></td></tr>
+  <tr><td><code>GetConnectionString("Name")</code></td><td>C#</td><td><code>NAME</code></td></tr>
+  <tr><td><code>@Value("${prop.name}")</code></td><td>Java / Kotlin (Spring)</td><td><code>PROP_NAME</code></td></tr>
+</table>
+<p>Generated C# files (<code>*.Designer.cs</code>, <code>*.g.cs</code>) are automatically skipped.</p>
+<p><strong>New fixture:</strong> <code>tests/fixtures/dotnet-api/Api/Program.cs</code> — sample C# program exercising all three IConfiguration patterns.</p>
+
+<h3>New Tests — Issue #19</h3>
+<table>
+  <tr><th>Test</th><th>File</th><th>Description</th></tr>
+  <tr><td><code>test_cs_environment_get_env_variable</code></td><td>test_env_scanner.py</td><td>GetEnvironmentVariable key extracted</td></tr>
+  <tr><td><code>test_cs_configuration_indexer</code></td><td>test_env_scanner.py</td><td>configuration["Section:Key"] &rarr; SECTION__KEY</td></tr>
+  <tr><td><code>test_cs_get_connection_string</code></td><td>test_env_scanner.py</td><td>GetConnectionString("Name") &rarr; NAME</td></tr>
+  <tr><td><code>test_cs_generated_file_skipped</code></td><td>test_env_scanner.py</td><td>*.Designer.cs files are ignored</td></tr>
+  <tr><td><code>test_java_system_getenv</code></td><td>test_env_scanner.py</td><td>System.getenv("KEY") extracted</td></tr>
+  <tr><td><code>test_java_spring_value_annotation</code></td><td>test_env_scanner.py</td><td>@Value("${prop.name}") &rarr; PROP_NAME</td></tr>
+  <tr><td><code>test_java_spring_value_with_default</code></td><td>test_env_scanner.py</td><td>@Value("${prop.name:default}") strips default</td></tr>
+  <tr><td><code>test_kotlin_spring_value_annotation</code></td><td>test_env_scanner.py</td><td>Spring @Value pattern in .kt files</td></tr>
+  <tr><td><code>test_dotnet_fixture_program_cs_configuration_indexer</code></td><td>test_analyzer.py</td><td>End-to-end: config indexer key in full profile</td></tr>
+  <tr><td><code>test_dotnet_fixture_program_cs_stripe_key</code></td><td>test_analyzer.py</td><td>End-to-end: Stripe key via GetEnvironmentVariable</td></tr>
+  <tr><td><code>test_dotnet_fixture_program_cs_sendgrid_key</code></td><td>test_analyzer.py</td><td>End-to-end: SendGrid key via GetConnectionString</td></tr>
+</table>
+
+<h2>Full Test Results</h2>
+
+<div class="summary-box">
+  <strong>Total: 181 passed &mdash; 0 failed &mdash; 1 deprecation warning (no action required)</strong>
+</div>
+
+<table>
+  <tr><th>Test File</th><th>Tests</th><th>Result</th></tr>
+  <tr><td><code>tests/test_analyzer.py</code></td><td>47</td><td><span class="badge-pass">PASSED</span></td></tr>
+  <tr><td><code>tests/test_arch_drift.py</code></td><td>26</td><td><span class="badge-pass">PASSED</span></td></tr>
+  <tr><td><code>tests/test_env_scanner.py</code></td><td>36</td><td><span class="badge-pass">PASSED</span></td></tr>
+  <tr><td><code>tests/test_gap_filler.py</code></td><td>2</td><td><span class="badge-pass">PASSED</span></td></tr>
+  <tr><td><code>tests/test_golden.py</code></td><td>13</td><td><span class="badge-pass">PASSED</span></td></tr>
+  <tr><td><code>tests/test_renderer.py</code></td><td>54</td><td><span class="badge-pass">PASSED</span></td></tr>
+  <tr><td><code>tests/test_validator.py</code></td><td>3</td><td><span class="badge-pass">PASSED</span></td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>181</strong></td><td><span class="badge-pass">ALL PASSED</span></td></tr>
+</table>
+
+<h2>Files Changed</h2>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>src/yamless/analyzer/runner.py</code></td><td>Added <code>_slugify()</code> function</td></tr>
+  <tr><td><code>src/yamless/analyzer/env_scanner.py</code></td><td>Extended <code>_scan_source_files()</code> for C# / Java / Kotlin</td></tr>
+  <tr><td><code>src/yamless/renderer/container_apps/modules/storage/main.tf</code></td><td>Strip <code>-</code> and <code>.</code> before 24-char truncation</td></tr>
+  <tr><td><code>src/yamless/renderer/container_apps/modules/keyvault/main.tf</code></td><td>Use trimsuffix/trimprefix after truncation</td></tr>
+  <tr><td><code>src/yamless/renderer/aks/modules/storage/main.tf</code></td><td>Same storage fix for AKS target</td></tr>
+  <tr><td><code>src/yamless/renderer/aks/modules/keyvault/main.tf</code></td><td>Same Key Vault fix for AKS target</td></tr>
+  <tr><td><code>tests/test_analyzer.py</code></td><td>8 new slugify tests + 3 dotnet fixture tests</td></tr>
+  <tr><td><code>tests/test_env_scanner.py</code></td><td>8 new C# / Java / Kotlin scanner tests</td></tr>
+  <tr><td><code>tests/fixtures/dotnet-api/Api/Program.cs</code></td><td>New C# fixture for end-to-end testing</td></tr>
+</table>
+
+<footer>Report generated automatically on 2026-11-05 &mdash; YAMLess project, commit <code>9dc0061</code></footer>
+</body>
+</html>
