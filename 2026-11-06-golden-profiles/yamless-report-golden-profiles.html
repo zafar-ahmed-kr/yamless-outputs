@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YAMLess — Golden Profiles Merge Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: #1a1a2e;
+      background: #f5f7fb;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: #ffffff;
+      padding: 2.5rem 2.5rem 2rem;
+    }
+    .header h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.6rem;
+    }
+    .header .subtitle {
+      font-size: 0.95rem;
+      color: #a8b8d8;
+      margin-bottom: 1.2rem;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .meta-item {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      padding: 0.55rem 0.85rem;
+    }
+    .meta-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7899c8;
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+    .meta-value {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #e2eaf7;
+    }
+
+    /* Pass badge */
+    .badge-pass {
+      display: inline-block;
+      background: #22c55e;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    /* Content */
+    .content {
+      padding: 2rem 2.5rem 2.5rem;
+    }
+
+    section {
+      margin-bottom: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0f3460;
+      border-bottom: 2px solid #e3e9f5;
+      padding-bottom: 0.4rem;
+      margin-bottom: 1.1rem;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #16213e;
+      margin: 1.3rem 0 0.6rem;
+    }
+
+    p {
+      color: #374151;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Tables */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    thead tr {
+      background: #0f3460;
+      color: #ffffff;
+    }
+    thead th {
+      padding: 0.6rem 0.9rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    tbody tr:nth-child(even) { background: #f0f4fc; }
+    tbody tr:hover { background: #dbeafe; }
+    tbody td {
+      padding: 0.52rem 0.9rem;
+      border-bottom: 1px solid #e5eaf5;
+      color: #1f2937;
+    }
+    tbody td code {
+      background: #e8edfb;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      color: #1a3a6e;
+    }
+
+    /* Cloud group headers */
+    .cloud-group {
+      margin-bottom: 1.5rem;
+    }
+    .cloud-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+    .cloud-pill {
+      display: inline-block;
+      padding: 0.18rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .pill-azure { background: #dbeafe; color: #1d4ed8; }
+    .pill-aws   { background: #fef3c7; color: #92400e; }
+    .pill-k8s   { background: #dcfce7; color: #166534; }
+    .pill-cross { background: #f3e8ff; color: #6b21a8; }
+
+    /* Feature cards */
+    .feature-card {
+      background: #f8faff;
+      border: 1px solid #dde6f9;
+      border-left: 4px solid #0f3460;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .feature-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f3460;
+      margin-bottom: 0.4rem;
+    }
+    .feature-card p, .feature-card ul {
+      font-size: 0.88rem;
+      color: #374151;
+    }
+    .feature-card ul {
+      padding-left: 1.3rem;
+    }
+    .feature-card ul li {
+      margin-bottom: 0.25rem;
+    }
+
+    /* Test results */
+    .test-block {
+      background: #0d1117;
+      color: #c9d1d9;
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .test-block .pass { color: #3fb950; }
+    .test-block .info { color: #58a6ff; }
+    .test-block .warn { color: #d29922; }
+    .test-block .bold { font-weight: 700; }
+
+    .test-summary-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.2rem;
+    }
+    .test-stat {
+      text-align: center;
+      border-radius: 8px;
+      padding: 0.8rem 0.5rem;
+      font-weight: 700;
+    }
+    .stat-pass { background: #dcfce7; color: #166534; }
+    .stat-fail { background: #fee2e2; color: #991b1b; }
+    .stat-warn { background: #fef9c3; color: #854d0e; }
+    .stat-new  { background: #ede9fe; color: #5b21b6; }
+    .test-stat .num { font-size: 2rem; display: block; line-height: 1; }
+    .test-stat .lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-top: 0.3rem; }
+
+    footer {
+      background: #f0f4fc;
+      border-top: 1px solid #dde6f9;
+      padding: 1rem 2.5rem;
+      font-size: 0.78rem;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>YAMLess — Golden Profiles Merge Report</h1>
+    <p class="subtitle">feature/golden-profiles merged into main &mdash; authored by Sailaja</p>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span class="meta-label">Commit</span>
+        <span class="meta-value">ed79231</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Merge Date</span>
+        <span class="meta-value">2026-11-06</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Branch</span>
+        <span class="meta-value">feature/golden-profiles</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Profiles Added</span>
+        <span class="meta-value">36</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Test Result</span>
+        <span class="meta-value">187 passed <span class="badge-pass">PASS</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Summary -->
+    <section>
+      <h2>Summary</h2>
+      <p>
+        The <strong>feature/golden-profiles</strong> branch introduces a comprehensive library of 36 golden
+        configuration profiles for Azure, AWS, and Kubernetes resources, along with governance gate templates,
+        a cost estimator, pod disruption budget manifests, HPA stabilization enhancements, and backend
+        Terraform templates.
+      </p>
+      <p>
+        This merge significantly expands YAMLess's ability to enforce environment-aware infrastructure standards
+        across all four supported renderers: Container Apps, AKS, ECS, and EKS. It also expands the core
+        modules (<code>golden.py</code>, <code>profile.py</code>, <code>gap_filler.py</code>, <code>cli.py</code>)
+        by approximately 370 lines and adds 6 new tests to <code>test_golden.py</code>.
+      </p>
+    </section>
+
+    <!-- Golden Profiles -->
+    <section>
+      <h2>New Golden Profile JSONs (36 total)</h2>
+
+      <!-- Azure -->
+      <div class="cloud-group">
+        <div class="cloud-title"><span class="cloud-pill pill-azure">Azure</span> 15 profiles</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>File</th><th>Resource Type</th></tr></thead>
+            <tbody>
+              <tr><td><code>azure-postgresql.json</code></td><td>PostgreSQL Flexible Server</td></tr>
+              <tr><td><code>azure-mysql.json</code></td><td>MySQL Flexible Server</td></tr>
+              <tr><td><code>azure-redis.json</code></td><td>Azure Cache for Redis</td></tr>
+              <tr><td><code>azure-storage-account.json</code></td><td>Storage Account</td></tr>
+              <tr><td><code>azure-servicebus.json</code></td><td>Service Bus Namespace</td></tr>
+              <tr><td><code>azure-event-hubs.json</code></td><td>Event Hubs Namespace</td></tr>
+              <tr><td><code>azure-keyvault.json</code></td><td>Key Vault</td></tr>
+              <tr><td><code>azure-container-app.json</code></td><td>Container Apps</td></tr>
+              <tr><td><code>azure-aks-cluster.json</code></td><td>AKS Cluster</td></tr>
+              <tr><td><code>azure-container-registry.json</code></td><td>Container Registry</td></tr>
+              <tr><td><code>azure-cosmos-db.json</code></td><td>Cosmos DB Account</td></tr>
+              <tr><td><code>azure-api-management.json</code></td><td>API Management</td></tr>
+              <tr><td><code>azure-application-gateway.json</code></td><td>Application Gateway</td></tr>
+              <tr><td><code>azure-signalr.json</code></td><td>SignalR Service</td></tr>
+              <tr><td><code>azure-log-analytics-workspace.json</code></td><td>Log Analytics Workspace</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AWS -->
+      <div class="cloud-group">
+        <div class="cloud-title"><span class="cloud-pill pill-aws">AWS</span> 12 profiles</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>File</th><th>Resource Type</th></tr></thead>
+            <tbody>
+              <tr><td><code>aws-rds.json</code></td><td>RDS (PostgreSQL/MySQL)</td></tr>
+              <tr><td><code>aws-s3.json</code></td><td>S3 Bucket</td></tr>
+              <tr><td><code>aws-sqs.json</code></td><td>SQS Queue</td></tr>
+              <tr><td><code>aws-elasticache-redis.json</code></td><td>ElastiCache Redis</td></tr>
+              <tr><td><code>aws-ecs-fargate.json</code></td><td>ECS Fargate Service</td></tr>
+              <tr><td><code>aws-eks-cluster.json</code></td><td>EKS Cluster</td></tr>
+              <tr><td><code>aws-msk.json</code></td><td>Managed Streaming for Kafka</td></tr>
+              <tr><td><code>aws-ecr.json</code></td><td>Elastic Container Registry</td></tr>
+              <tr><td><code>aws-alb.json</code></td><td>Application Load Balancer</td></tr>
+              <tr><td><code>aws-secrets-manager.json</code></td><td>Secrets Manager</td></tr>
+              <tr><td><code>aws-wafv2.json</code></td><td>WAF v2 Web ACL</td></tr>
+              <tr><td><code>aws-cloudwatch.json</code></td><td>CloudWatch Alarms/Dashboards</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Kubernetes -->
+      <div class="cloud-group">
+        <div class="cloud-title"><span class="cloud-pill pill-k8s">Kubernetes</span> 5 profiles</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>File</th><th>Resource Type</th></tr></thead>
+            <tbody>
+              <tr><td><code>kubernetes-deployment.json</code></td><td>Deployment</td></tr>
+              <tr><td><code>kubernetes-hpa.json</code></td><td>Horizontal Pod Autoscaler</td></tr>
+              <tr><td><code>kubernetes-ingress.json</code></td><td>Ingress</td></tr>
+              <tr><td><code>kubernetes-namespace.json</code></td><td>Namespace</td></tr>
+              <tr><td><code>kubernetes-network-policy.json</code></td><td>Network Policy</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Cross-cutting -->
+      <div class="cloud-group">
+        <div class="cloud-title"><span class="cloud-pill pill-cross">Cross-cutting</span> 4 profiles</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>File</th><th>Resource Type</th></tr></thead>
+            <tbody>
+              <tr><td><code>iam-identity.json</code></td><td>IAM / Workload Identity</td></tr>
+              <tr><td><code>observability-standards.json</code></td><td>Observability Standards</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- New Features -->
+    <section>
+      <h2>New Features</h2>
+
+      <div class="feature-card">
+        <h4>Governance Gate Templates (governance.tf.j2)</h4>
+        <p>Added for all four renderers, each containing Sentinel/OPA policy stubs and tagging enforcement:</p>
+        <ul>
+          <li><strong>Container Apps</strong> — Sentinel/OPA stubs enforcing tagging, SKU constraints, and allowed resource types for Azure</li>
+          <li><strong>AKS</strong> — Azure Policy assignments at cluster scope with deny effects for non-compliant workloads</li>
+          <li><strong>ECS</strong> — AWS Config rules and Service Control Policy stubs covering ECS task IAM boundaries</li>
+          <li><strong>EKS</strong> — OPA Gatekeeper constraint templates enforcing namespace labels and pod security standards</li>
+        </ul>
+        <p>All templates enforce the required tags: <code>environment</code>, <code>team</code>, <code>cost-centre</code>, <code>managed-by</code>.</p>
+      </div>
+
+      <div class="feature-card">
+        <h4>Cost Estimator (src/yamless/cost_estimator.py — 628 lines)</h4>
+        <ul>
+          <li>Looks up unit pricing for Azure and AWS resource SKUs from golden profiles</li>
+          <li>Aggregates estimated monthly costs per environment (dev vs production)</li>
+          <li>Outputs a cost summary table alongside the rendered Terraform</li>
+          <li>Integrates with the CLI via the new <code>yamless estimate</code> subcommand</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h4>PodDisruptionBudget Manifests (pdb.yaml.j2)</h4>
+        <ul>
+          <li>Added for both AKS and EKS renderers</li>
+          <li>Minimum available replicas derived from the golden profile <code>min_replicas</code> field</li>
+          <li>Selector labels aligned with the deployment's <code>app</code> label</li>
+          <li>Rendered alongside existing deployment and HPA manifests</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h4>HPA Stabilization Windows &amp; Topology Spread Constraints</h4>
+        <ul>
+          <li><code>scaleDown.stabilizationWindowSeconds</code> (default 300 s) — prevents replica flapping</li>
+          <li><code>scaleUp.stabilizationWindowSeconds</code> (default 60 s) — faster scale-out response</li>
+          <li>Topology spread constraints ensure pods spread across availability zones with <code>whenUnsatisfiable: DoNotSchedule</code></li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h4>Backend Terraform (backend.tf.j2) and terraform.tfvars.example.j2</h4>
+        <ul>
+          <li><strong>Azure renderers (Container Apps, AKS):</strong> Azure Blob Storage backend with key derived from app slug and environment</li>
+          <li><strong>AWS renderers (ECS, EKS):</strong> S3 backend with DynamoDB locking table</li>
+          <li><code>terraform.tfvars.example.j2</code> provides documented variable file template for each renderer</li>
+        </ul>
+      </div>
+
+      <h3>Expanded Core Modules</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Module</th><th>Lines Added</th><th>Key Changes</th></tr></thead>
+          <tbody>
+            <tr><td><code>src/yamless/golden.py</code></td><td>+177</td><td>Richer profile merging logic; environment overlay support; profile inheritance chains</td></tr>
+            <tr><td><code>src/yamless/profile.py</code></td><td>+77</td><td>Additional profile fields for cost estimator integration; validation helpers</td></tr>
+            <tr><td><code>src/yamless/gap_filler.py</code></td><td>+67</td><td>Gap-filling heuristics for newly added profile keys</td></tr>
+            <tr><td><code>src/yamless/cli.py</code></td><td>+47</td><td><code>estimate</code> subcommand; <code>--profile-dir</code> flag for custom profile paths</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Test Results -->
+    <section>
+      <h2>Test Results</h2>
+
+      <div class="test-summary-row" style="margin-bottom:1.2rem;">
+        <div class="test-stat stat-pass"><span class="num">187</span><span class="lbl">Passed</span></div>
+        <div class="test-stat stat-fail"><span class="num">0</span><span class="lbl">Failed</span></div>
+        <div class="test-stat stat-warn"><span class="num">1</span><span class="lbl">Warning</span></div>
+        <div class="test-stat stat-new"><span class="num">6</span><span class="lbl">New Tests</span></div>
+      </div>
+
+      <div class="test-block">
+<span class="info">platform darwin -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0</span>
+<span class="info">rootdir: /Users/zafar/yamless</span>
+<span class="info">configfile: pyproject.toml</span>
+<span class="info">collected 187 items</span>
+
+<span class="pass">tests/test_analyzer.py      47 passed</span>
+<span class="pass">tests/test_arch_drift.py    24 passed</span>
+<span class="pass">tests/test_env_scanner.py   27 passed</span>
+<span class="pass">tests/test_gap_filler.py     2 passed</span>
+<span class="pass">tests/test_golden.py        20 passed   <span class="warn">&lt;-- 6 new tests from this merge</span></span>
+<span class="pass">tests/test_renderer.py      62 passed</span>
+<span class="pass">tests/test_validator.py      5 passed</span>
+
+<span class="bold pass">======================== 187 passed, 1 warning in 5.04s ========================</span>
+      </div>
+
+      <h3 style="margin-top:1.4rem;">New Tests in test_golden.py</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>#</th><th>Test Name</th><th>What It Covers</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>test_load_known_azure_resource_dev</code></td><td>Loading an Azure profile for dev environment</td></tr>
+            <tr><td>2</td><td><code>test_load_known_azure_resource_production</code></td><td>Loading an Azure profile for production environment</td></tr>
+            <tr><td>3</td><td><code>test_load_known_aws_resource</code></td><td>Loading a known AWS resource profile</td></tr>
+            <tr><td>4</td><td><code>test_load_missing_resource_returns_empty_dict</code></td><td>Graceful handling of unknown resource type</td></tr>
+            <tr><td>5</td><td><code>test_load_missing_cloud_returns_empty_dict</code></td><td>Graceful handling of unknown cloud provider</td></tr>
+            <tr><td>6</td><td><code>test_load_missing_both_returns_empty_dict</code></td><td>Graceful handling of both unknown</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Repo Summary -->
+    <section>
+      <h2>Repository Details</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Commit</td><td><code>ed79231</code></td></tr>
+            <tr><td>Merge Date</td><td>2026-11-06</td></tr>
+            <tr><td>Branch</td><td>feature/golden-profiles → main</td></tr>
+            <tr><td>Author</td><td>Sailaja</td></tr>
+            <tr><td>Golden profiles added</td><td>36</td></tr>
+            <tr><td>New source lines (approx.)</td><td>~1,100</td></tr>
+            <tr><td>Tests before merge</td><td>181</td></tr>
+            <tr><td>Tests after merge</td><td>187</td></tr>
+            <tr><td>Test result</td><td><strong>187 passed, 0 failed</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+
+  <footer>
+    <span>YAMLess Infrastructure Code Generator</span>
+    <span>Report generated: 2026-11-05 &nbsp;|&nbsp; Commit: ed79231 &nbsp;|&nbsp; Branch: feature/golden-profiles</span>
+  </footer>
+
+</div><!-- /container -->
+</body>
+</html>
