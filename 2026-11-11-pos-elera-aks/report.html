@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>pos-elera-sales-compliance — YAMLess AKS Run 2026-11-11</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="-" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">pos-elera-sales-compliance — YAMLess AKS Run
+2026-11-11</h1>
+</header>
+<h1
+id="pos-elera-sales-compliance-yamless-aks-run">pos-elera-sales-compliance
+— YAMLess AKS Run</h1>
+<h3
+id="krogertechnologypos-elera-sales-compliance-target-aks-2026-11-11">krogertechnology/pos-elera-sales-compliance
+| Target: AKS | 2026-11-11</h3>
+<hr />
+<h2 id="run-summary">Run Summary</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repo</td>
+<td><code>krogertechnology/pos-elera-sales-compliance</code></td>
+</tr>
+<tr>
+<td>Target</td>
+<td>Azure Kubernetes Service (AKS)</td>
+</tr>
+<tr>
+<td>YAMLess branch</td>
+<td>develop @ a758234</td>
+</tr>
+<tr>
+<td>Issues applied</td>
+<td>#26–#36 (all fixes through Cosmos DB, secret denylist, warning
+threshold)</td>
+</tr>
+<tr>
+<td>Date</td>
+<td>2026-11-11</td>
+</tr>
+<tr>
+<td>Output</td>
+<td>38 .tf files, 8 .yaml files</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="detected-profile">Detected Profile</h2>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 26%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+<th>Confidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td>Java (JDK 25)</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Shape</td>
+<td>http-service</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Port</td>
+<td>8080</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Health check path</td>
+<td><code>/actuator/health</code></td>
+<td>(from spring-boot-starter-actuator)</td>
+</tr>
+<tr>
+<td>Memory limit</td>
+<td>1152Mi</td>
+<td>(from helm/values.yaml)</td>
+</tr>
+<tr>
+<td>Memory request</td>
+<td>256Mi</td>
+<td>(from helm/values.yaml)</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>MongoDB → Cosmos DB</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Cache</td>
+<td>Redis → Azure Cache for Redis</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td>RabbitMQ → Azure Service Bus</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Min replicas</td>
+<td>1</td>
+<td>(no replicaCount in this repo’s Helm)</td>
+</tr>
+<tr>
+<td>Max replicas</td>
+<td>10</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>39</td>
+<td>high</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="terraform-modules-generated">Terraform Modules Generated</h2>
+<pre><code>terraform/
+├── main.tf
+│   ├── module &quot;vnet&quot;
+│   ├── module &quot;aks_cluster&quot;
+│   ├── module &quot;keyvault&quot;
+│   ├── module &quot;aks_workload_identity&quot;
+│   ├── module &quot;cosmos&quot;          ← Cosmos DB for MongoDB (autoscale 10,000 RU)
+│   ├── module &quot;redis&quot;           ← Azure Cache for Redis (Premium P1)
+│   └── module &quot;servicebus&quot;      ← Azure Service Bus (Standard)
+├── variables.tf
+├── outputs.tf
+├── governance.tf
+├── backend.tf
+└── modules/
+    ├── cosmos/        (azurerm_cosmosdb_account — MongoDB kind, writes mongodb-url to KV)
+    ├── redis/
+    ├── servicebus/
+    ├── keyvault/
+    ├── vnet/
+    ├── aks_cluster/
+    └── aks_workload_identity/</code></pre>
+<hr />
+<h2 id="kubernetes-manifests-generated">Kubernetes Manifests
+Generated</h2>
+<pre><code>k8s/
+├── namespace.yaml
+├── service-account.yaml
+├── secret-provider-class.yaml   ← 39 KV secret refs
+├── deployment.yaml              ← probes: /actuator/health, limits: 1152Mi
+├── service.yaml
+├── hpa.yaml
+├── network-policy.yaml
+└── ingress.yaml</code></pre>
+<hr />
+<h2 id="cosmos-db-module-config">Cosmos DB Module Config</h2>
+<p>Driven by <code>golden-profiles/azure-cosmos-db.json</code> for
+<code>production</code> environment:</p>
+<pre class="hcl"><code>module &quot;cosmos&quot; {
+  source            = &quot;./modules/cosmos&quot;
+  consistency_level = &quot;BoundedStaleness&quot;
+  throughput_mode   = &quot;autoscale&quot;
+  max_autoscale_ru  = 10000
+  server_version    = &quot;4.2&quot;
+}</code></pre>
+<hr />
+<h2 id="secrets-39">Secrets (39)</h2>
+<p>Secret denylist (#34) removed
+<code>GF_SECURITY_ADMIN_PASSWORD</code>, <code>SWAGGER_URL</code>,
+<code>SWAGGER_CONFIG_URL</code> that appeared in v2.
+<code>MONGODB_URI</code> and <code>SPRING_DATA_MONGODB_URI</code> are
+marked <code>infra_managed</code> (#35) — <code>mongodb-url</code> from
+the Cosmos module is authoritative.</p>
+<p>Remaining 39 KV secrets are legitimate application credentials:</p>
+<table>
+<colgroup>
+<col style="width: 52%" />
+<col style="width: 47%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PingFederate / OAuth</td>
+<td><code>PINGFED_CLIENT_SECRET</code>,
+<code>PING_AUTH_ISSUER_URI</code>, <code>PING_AUTH_JWK_SET_URI</code>,
+<code>PING_FED_*</code> (×8)</td>
+</tr>
+<tr>
+<td>RabbitMQ</td>
+<td><code>AMQP_BROKER_PASSWORD</code>, <code>MQ_PASSWORD</code>,
+<code>SPRING_RABBITMQ_PASSWORD</code></td>
+</tr>
+<tr>
+<td>External services</td>
+<td><code>KOUNT_API_KEY</code>, <code>KOUNT_BASE_URL</code>,
+<code>ELERA_*</code> (×3), <code>COMPLIANCE_BASE_URL</code></td>
+</tr>
+<tr>
+<td>Spring Cloud Config</td>
+<td><code>CLOUD_CONFIG_URL</code></td>
+</tr>
+<tr>
+<td>Redis</td>
+<td><code>REDIS_HOST</code>, <code>REDIS_KEY</code></td>
+</tr>
+<tr>
+<td>RSA / crypto</td>
+<td><code>CIS_RSA_PUBLIC_KEY</code></td>
+</tr>
+<tr>
+<td>Misc endpoints</td>
+<td><code>DB_URI</code>, <code>LOADER_CATALOG_BASE_URL</code>,
+<code>EXTERNAL_SERVICES_*</code>, etc.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>Warning:</strong> High secret count (39). Review whether
+all env vars need to be in Key Vault — consider grouping with a secrets
+manager pattern or filtering observability vars.</p>
+</blockquote>
+<hr />
+<h2 id="cost-estimate">Cost Estimate</h2>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Monthly</th>
+<th>Annual</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dev</td>
+<td>$170 – $245</td>
+<td>$2,040 – $2,940</td>
+</tr>
+<tr>
+<td>Staging</td>
+<td>$392 – $542</td>
+<td>$4,704 – $6,504</td>
+</tr>
+<tr>
+<td><strong>Production</strong></td>
+<td><strong>$1,217 – $1,867</strong></td>
+<td><strong>$14,604 – $22,404</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Production breakdown:</strong></p>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 34%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Cost/mo</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AKS Cluster</td>
+<td>$600</td>
+<td>Control plane free; system node pool Standard_D2s_v3</td>
+</tr>
+<tr>
+<td>Cosmos DB (MongoDB)</td>
+<td>$200–$800</td>
+<td>Autoscale 2,000–10,000 RU, BoundedStaleness</td>
+</tr>
+<tr>
+<td>Redis Cache</td>
+<td>$370</td>
+<td>Premium P1 (6 GB)</td>
+</tr>
+<tr>
+<td>Service Bus</td>
+<td>$32–$82</td>
+<td>Standard tier</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td>$15</td>
+<td>Premium SKU</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="open-gaps-all-absorbed-into-37">Open Gaps (all absorbed into
+#37)</h2>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 25%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Gap</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>#30</td>
+<td>AMQP 0-9-1 → AMQP 1.0 migration risk not surfaced</td>
+<td>Silent — app may break on direct reply-to patterns</td>
+</tr>
+<tr>
+<td>#32</td>
+<td>JMX / management secondary port not detected</td>
+<td>Missing containerPort; no NetworkPolicy rule</td>
+</tr>
+<tr>
+<td>#33</td>
+<td>Spring Cloud Config startup dependency not modeled</td>
+<td>Pod will fail to start if config server unreachable; no init
+container or warning</td>
+</tr>
+</tbody>
+</table>
+<p>These are non-blocking for pod scheduling but represent real
+migration risks. All three are driving use cases for the Runtime
+Enricher and Migration Risk Evaluator in #37.</p>
+<hr />
+<p><em>YAMLess — https://github.com/zafar-ahmed-kr/YAMLess</em>
+<em>Date: 2026-11-11</em></p>
+</body>
+</html>
