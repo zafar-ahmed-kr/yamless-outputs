@@ -1,0 +1,192 @@
+{
+  "app": {
+    "name": "pos-elera-sales-compliance",
+    "runtime": "java",
+    "runtime_version": "25",
+    "shape": "http-service",
+    "port": null,
+    "dockerfile": true,
+    "health_check_path": "/health"
+  },
+  "dependencies": {
+    "database": null,
+    "cache": true,
+    "storage": false,
+    "queue": false,
+    "kafka": false
+  },
+  "secrets": [
+    "AMQP_BROKER_PASSWORD",
+    "AUTHORIZATION_OAUTH2_REDIRECT_URI",
+    "AUTHORIZATION_PING_BASE_ENDPOINT",
+    "AUTHORIZATION_PING_PASSWORD",
+    "AUTH_TIMEOUT_CONNECTION",
+    "AUTH_TIMEOUT_READ",
+    "CIS_RSA_PUBLIC_KEY",
+    "CLOUD_CONFIG_URL",
+    "COMPLIANCE_BASE_URL",
+    "COM_KROGER_POS_COMPLIANCELOGGINGAPI_ENDPOINT",
+    "DB_URI",
+    "ELERA_BASE_URL",
+    "ELERA_REDIRECT_URI",
+    "ELERA_SERVICE_ACCOUNT_PASSWORD",
+    "EXTERNAL_SERVICES_LOADER_CATALOG_BASE_URL",
+    "GF_SECURITY_ADMIN_PASSWORD",
+    "KOUNT_API_KEY",
+    "KOUNT_BASE_URL",
+    "LOADER_CATALOG_BASE_URL",
+    "MONGODB_URI",
+    "MQ_PASSWORD",
+    "PINGFED_CLIENT_SECRET",
+    "PINGFED_DISCOVERY_URL",
+    "PING_AUTH_ISSUER_URI",
+    "PING_AUTH_JWK_SET_URI",
+    "PING_BASE_ENDPOINT",
+    "PING_CLIENT_ID",
+    "PING_FED_AUTH_ISSUER_URI",
+    "PING_FED_AUTH_JWT_SET_URI",
+    "PING_PASSWORD",
+    "PING_PONG_BASE_URL",
+    "PING_USERNAME",
+    "REDIS_HOST",
+    "REDIS_KEY",
+    "SPRING_DATA_MONGODB_URI",
+    "SPRING_RABBITMQ_PASSWORD",
+    "SPRING_SECURITY_OAUTH2_PING_FED_JWT_ISSUER_URI",
+    "SPRING_SECURITY_OAUTH2_PING_FED_JWT_JWK_SET_URI",
+    "SPRING_SECURITY_OAUTH2_PING_ONE_JWT_ISSUER_URI",
+    "SPRING_SECURITY_OAUTH2_PING_ONE_JWT_JWK_SET_URI",
+    "SWAGGER_CONFIG_URL",
+    "SWAGGER_URL"
+  ],
+  "scaling": {
+    "min_replicas": 1,
+    "max_replicas": 10,
+    "scale_trigger": "http"
+  },
+  "ingress": {
+    "external": true,
+    "target_port": 8080
+  },
+  "workers": [],
+  "target": "aks",
+  "environment": "production",
+  "confidence": {
+    "runtime": "high",
+    "secrets": "high",
+    "shape": "high"
+  },
+  "cost_estimate": {
+    "environment": "production",
+    "monthly_low": 985.0,
+    "monthly_high": 985.0,
+    "annual_low": 11820.0,
+    "annual_high": 11820.0,
+    "items": [
+      {
+        "name": "AKS Cluster",
+        "category": "compute",
+        "low": 600.0,
+        "high": 600.0,
+        "note": ""
+      },
+      {
+        "name": "Key Vault",
+        "category": "security",
+        "low": 15.0,
+        "high": 15.0,
+        "note": ""
+      },
+      {
+        "name": "Redis Cache",
+        "category": "cache",
+        "low": 370.0,
+        "high": 370.0,
+        "note": "P1"
+      }
+    ],
+    "by_env": {
+      "dev": {
+        "monthly_low": 160.0,
+        "monthly_high": 160.0,
+        "items": [
+          {
+            "name": "AKS Cluster",
+            "category": "compute",
+            "low": 100.0,
+            "high": 100.0,
+            "note": ""
+          },
+          {
+            "name": "Key Vault",
+            "category": "security",
+            "low": 5.0,
+            "high": 5.0,
+            "note": ""
+          },
+          {
+            "name": "Redis Cache",
+            "category": "cache",
+            "low": 55.0,
+            "high": 55.0,
+            "note": "C1"
+          }
+        ]
+      },
+      "staging": {
+        "monthly_low": 310.0,
+        "monthly_high": 310.0,
+        "items": [
+          {
+            "name": "AKS Cluster",
+            "category": "compute",
+            "low": 250.0,
+            "high": 250.0,
+            "note": ""
+          },
+          {
+            "name": "Key Vault",
+            "category": "security",
+            "low": 5.0,
+            "high": 5.0,
+            "note": ""
+          },
+          {
+            "name": "Redis Cache",
+            "category": "cache",
+            "low": 55.0,
+            "high": 55.0,
+            "note": "C1"
+          }
+        ]
+      },
+      "production": {
+        "monthly_low": 985.0,
+        "monthly_high": 985.0,
+        "items": [
+          {
+            "name": "AKS Cluster",
+            "category": "compute",
+            "low": 600.0,
+            "high": 600.0,
+            "note": ""
+          },
+          {
+            "name": "Key Vault",
+            "category": "security",
+            "low": 15.0,
+            "high": 15.0,
+            "note": ""
+          },
+          {
+            "name": "Redis Cache",
+            "category": "cache",
+            "low": 370.0,
+            "high": 370.0,
+            "note": "P1"
+          }
+        ]
+      }
+    }
+  }
+}

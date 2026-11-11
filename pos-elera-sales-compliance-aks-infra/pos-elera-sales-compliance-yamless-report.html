@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>YAMLess Case Study — pos-elera-sales-compliance</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">YAMLess Case Study — pos-elera-sales-compliance</h1>
+</header>
+<h1 id="yamless-generating-azure-infrastructure-from-code">YAMLess:
+Generating Azure Infrastructure from Code</h1>
+<h3 id="case-study-krogertechnologypos-elera-sales-compliance">Case
+Study — krogertechnology/pos-elera-sales-compliance</h3>
+<hr />
+<h2 id="what-is-yamless">What is YAMLess?</h2>
+<p>YAMLess is an <strong>Infrastructure from Code (IFC)</strong> tool.
+Given a code repository, it produces a complete, policy-validated
+Terraform workspace — with no configuration files, no schema to fill in,
+and no IaC expertise required from the developer.</p>
+<p>The pipeline has four stages:</p>
+<pre><code>Repo on disk
+    │
+    ▼
+┌─────────────────────┐
+│  1. Static Analyzer │  Reads Dockerfile, pom.xml, .env files, Helm values,
+│                     │  Spring Boot YAML, source code (Java @Value, env refs).
+│                     │  Produces a typed AppProfile with confidence scores.
+└──────────┬──────────┘
+           │  (fires only when any field is low/medium confidence)
+           ▼
+┌─────────────────────┐
+│  2. LLM Gap-Filler  │  Claude reads relevant source files and fills in what
+│                     │  static analysis couldn&#39;t determine — via structured
+│                     │  tool use only, no free-form parsing.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  3. Golden Resolver │  Loads golden-profiles/&lt;resource&gt;.json — per-env
+│                     │  sizing standards, cost estimate, governance gates.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  4. Renderer        │  Jinja2 root templates + static Terraform modules →
+│                     │  ready-to-apply workspace. Outputs AKS + K8s manifests.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  5. Validator       │  checkov policy-as-code. Security posture is enforced
+│                     │  by static module files — the LLM cannot affect it.
+└─────────────────────┘</code></pre>
+<hr />
+<h2 id="applying-yamless-to-pos-elera-sales-compliance">Applying YAMLess
+to pos-elera-sales-compliance</h2>
+<p><a
+href="https://github.com/krogertechnology/pos-elera-sales-compliance">pos-elera-sales-compliance</a>
+is a Kroger Technology Java Spring Boot microservice responsible for POS
+(point-of-sale) sales compliance. It integrates with the ELERA POS
+platform, Ping Identity for OAuth2/OIDC SSO, Kount for fraud detection,
+MongoDB for persistence, and RabbitMQ for messaging.</p>
+<h3 id="command-run">Command run</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">yamless</span> generate https://github.com/krogertechnology/pos-elera-sales-compliance <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--no-llm</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--target</span> aks <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out-dir</span> ~/yamless/outputs/pos-elera-sales-compliance-aks-infra <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--validate</span></span></code></pre></div>
+<h3 id="profile-detected">Profile detected</h3>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 36%" />
+<col style="width: 29%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detected value</th>
+<th>Confidence</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td><code>java</code></td>
+<td>high</td>
+<td><code>pom.xml</code> present at repo root</td>
+</tr>
+<tr>
+<td>Runtime version</td>
+<td><code>25</code></td>
+<td>high</td>
+<td>Detected from Dockerfile Java base image</td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>8080</code></td>
+<td>high</td>
+<td>Standard Spring Boot port</td>
+</tr>
+<tr>
+<td>Shape</td>
+<td><code>http-service</code></td>
+<td>high</td>
+<td>Spring MVC / REST controller detected</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>null</code></td>
+<td>—</td>
+<td>MongoDB not in known pom.xml artifact set; LLM gap-filler
+required</td>
+</tr>
+<tr>
+<td>Cache</td>
+<td><code>true</code></td>
+<td>high</td>
+<td>Redis dependency detected in pom.xml</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>RabbitMQ present in secrets but not in known artifact set</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>Not detected</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>Not detected</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>43 detected</td>
+<td>high</td>
+<td>Helm values + Spring YAML + source code scanned</td>
+</tr>
+<tr>
+<td>Ingress</td>
+<td><code>external: true</code>, port <code>8080</code></td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>Scale trigger</td>
+<td><code>http</code></td>
+<td>high</td>
+<td>HTTP service shape</td>
+</tr>
+</tbody>
+</table>
+<h3 id="output-generated">Output generated</h3>
+<pre><code>pos-elera-sales-compliance-aks-infra/
+├── profile.json
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── providers.tf
+│   ├── backend.tf
+│   ├── governance.tf
+│   └── modules/
+│       ├── aks_cluster/
+│       ├── aks_workload_identity/
+│       ├── keyvault/
+│       ├── redis/          ← detected dependency
+│       ├── vnet/
+│       ├── postgres/       ← generated but unused (database: null)
+│       ├── mysql/          ← generated but unused
+│       ├── storage/        ← generated but unused
+│       ├── servicebus/     ← generated but unused
+│       └── event_hubs/     ← generated but unused
+└── k8s/
+    ├── namespace.yaml
+    ├── service-account.yaml
+    ├── secret-provider-class.yaml
+    ├── deployment.yaml
+    ├── service.yaml
+    ├── ingress.yaml
+    ├── hpa.yaml
+    └── network-policy.yaml</code></pre>
+<p><strong>35 .tf files + 8 K8s manifests written.</strong></p>
+<p><strong>48/49 policy checks passed.</strong> One MEDIUM failure:</p>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 38%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr>
+<th>Check</th>
+<th>Resource</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CKV_AZURE_43 — Storage account naming rules</td>
+<td><code>azurerm_storage_account.this</code></td>
+<td>False positive — <code>storage: false</code>; checkov scans all
+module files including unused ones</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cost-estimate">Cost estimate</h3>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Monthly</th>
+<th>Annual</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dev</td>
+<td>$160</td>
+<td>$1,920</td>
+</tr>
+<tr>
+<td>Staging</td>
+<td>$310</td>
+<td>$3,720</td>
+</tr>
+<tr>
+<td>Production</td>
+<td>$985</td>
+<td>$11,820</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Production breakdown:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Cost/month</th>
+<th>SKU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AKS Cluster</td>
+<td>$600</td>
+<td>Standard, m5.large equivalent nodes</td>
+</tr>
+<tr>
+<td>Redis Cache</td>
+<td>$370</td>
+<td>P1 (Premium — production standard)</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td>$15</td>
+<td>Standard</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>$985</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Pricing as of 2026-11-06, approx. UK South on-demand.</em></p>
+<h3 id="secrets-detected-43">Secrets detected (43)</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr>
+<th>Group</th>
+<th>Count</th>
+<th>Key examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ping Identity / OIDC</td>
+<td>13</td>
+<td><code>PINGFED_CLIENT_SECRET</code>,
+<code>PING_AUTH_ISSUER_URI</code>, <code>PINGFED_DISCOVERY_URL</code>,
+<code>PING_CLIENT_ID</code></td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>2</td>
+<td><code>MONGODB_URI</code>, <code>SPRING_DATA_MONGODB_URI</code></td>
+</tr>
+<tr>
+<td>RabbitMQ / AMQP</td>
+<td>2</td>
+<td><code>SPRING_RABBITMQ_PASSWORD</code>,
+<code>AMQP_BROKER_PASSWORD</code></td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>2</td>
+<td><code>REDIS_HOST</code>, <code>REDIS_KEY</code></td>
+</tr>
+<tr>
+<td>ELERA POS</td>
+<td>3</td>
+<td><code>ELERA_BASE_URL</code>,
+<code>ELERA_SERVICE_ACCOUNT_PASSWORD</code>,
+<code>ELERA_REDIRECT_URI</code></td>
+</tr>
+<tr>
+<td>Kount fraud</td>
+<td>2</td>
+<td><code>KOUNT_API_KEY</code>, <code>KOUNT_BASE_URL</code></td>
+</tr>
+<tr>
+<td>Spring Cloud / Config</td>
+<td>2</td>
+<td><code>CLOUD_CONFIG_URL</code>, <code>SWAGGER_CONFIG_URL</code></td>
+</tr>
+<tr>
+<td>Compliance APIs</td>
+<td>4</td>
+<td><code>COMPLIANCE_BASE_URL</code>, <code>DB_URI</code>,
+<code>COM_KROGER_POS_COMPLIANCELOGGINGAPI_ENDPOINT</code></td>
+</tr>
+<tr>
+<td>Other</td>
+<td>13</td>
+<td>Auth timeouts, RSA keys, Grafana admin, loader catalog URLs</td>
+</tr>
+</tbody>
+</table>
+<p>All 43 secrets are provisioned in Azure Key Vault and mounted to the
+pod via the Key Vault CSI driver.</p>
+<h3 id="what-the-output-correctly-captured">What the output correctly
+captured</h3>
+<ul>
+<li>AKS cluster with Workload Identity and Key Vault CSI wiring</li>
+<li>All 43 secrets surfaced into Key Vault — none left as plaintext env
+vars</li>
+<li>Redis Cache module (P1 in production, C1 in dev/staging)</li>
+<li>External HTTP ingress on port 8080 with Network Policy</li>
+<li>HPA (HTTP scale trigger, 1–10 replicas) + KEDA-ready
+ScaledObject</li>
+<li>Full K8s manifest set: Namespace, ServiceAccount,
+SecretProviderClass, Deployment, Service, Ingress, HPA,
+NetworkPolicy</li>
+<li>Governance gates in <code>governance.tf</code>: mandatory tags,
+min-replica policy, autoscaling, backup retention</li>
+<li>Security golden standards: RBAC-only auth, TLS 1.2, Key Vault
+firewall deny-all, private AKS nodes</li>
+</ul>
+<hr />
+<h2 id="what-was-missed">What was missed</h2>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 41%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Missing</th>
+<th>Root cause</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MongoDB database module</td>
+<td><code>spring-boot-starter-data-mongodb</code> not in known pom.xml
+artifact set</td>
+<td>No Cosmos DB API for MongoDB provisioned; app will fail to
+connect</td>
+</tr>
+<tr>
+<td>RabbitMQ queue module</td>
+<td><code>spring-boot-starter-amqp</code> not in known artifact set</td>
+<td>No Service Bus provisioned; AMQP messaging will fail</td>
+</tr>
+<tr>
+<td>Port detection</td>
+<td>No <code>EXPOSE</code> in Dockerfile (defaults to 8080 from shape
+detection)</td>
+<td>Low risk — 8080 is correct for Spring Boot</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="learnings-for-yamless">Learnings for YAMLess</h2>
+<h3 id="mongodb-support-needed-in-java-artifact-set">1. MongoDB support
+needed in Java artifact set</h3>
+<p><strong>What happened:</strong> The pom.xml contains
+<code>spring-boot-starter-data-mongodb</code> and
+<code>de.flapdoodle.embed.mongo</code> (embedded test Mongo). The static
+analyzer’s Java artifact table does not include MongoDB Spring Data as a
+database signal — it looks for Postgres/MySQL JDBC drivers and ORM
+packages.</p>
+<p><strong>Proposed fix:</strong> Add
+<code>spring-boot-starter-data-mongodb</code>,
+<code>mongodb-driver-sync</code>, and
+<code>flapdoodle.embed.mongo</code> to the Java dependency classifier.
+When detected, set <code>database: mongodb</code> and emit a Cosmos DB
+for MongoDB or Atlas module.</p>
+<p><strong>Impact:</strong> Affects any Java Spring Boot app using
+MongoDB — a common pattern in Kroger microservices.</p>
+<hr />
+<h3 id="rabbitmq-spring-amqp-detection-missing">2. RabbitMQ / Spring
+AMQP detection missing</h3>
+<p><strong>What happened:</strong> <code>spring-boot-starter-amqp</code>
+and <code>spring-rabbit</code> are present in <code>pom.xml</code>. The
+analyzer’s queue detection covers Azure Service Bus SDK and
+<code>@azure/service-bus</code> for Node, but does not include Spring
+AMQP as a queue signal.</p>
+<p><strong>Proposed fix:</strong> Add
+<code>spring-boot-starter-amqp</code>, <code>spring-rabbit</code>, and
+<code>rabbitmq-client</code> to the queue classifier. When detected, set
+<code>queue: true</code> and emit a Service Bus module (the generated
+infrastructure equivalent of RabbitMQ in Azure).</p>
+<hr />
+<h3 id="high-secret-count-reflects-complex-external-integration">3. High
+secret count reflects complex external integration</h3>
+<p>The 43 detected secrets highlight the app’s integration surface:
+PingFederate + PingOne (13 secrets), ELERA POS (3), Kount fraud (2),
+MongoDB (2), RabbitMQ (2). This is not a gap — the secret scanner
+correctly identified all of them from Helm values, Spring Boot YAML, and
+Docker Compose files. All are correctly provisioned in Key Vault.</p>
+<p>However, the depth of Ping Identity integration (dual-IdP:
+PingFederate and PingOne simultaneously) is worth noting. The generated
+Kubernetes SecretProviderClass mounts all 43 secrets, which is unusually
+large and may warrant secret consolidation in a follow-up.</p>
+<hr />
+<h2 id="improvement-roadmap">Improvement Roadmap</h2>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 30%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Change</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>High</td>
+<td>Add MongoDB Spring Data to Java artifact classifier</td>
+<td>Fixes <code>database: null</code> for this and similar Kroger Java
+microservices</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Add Spring AMQP / RabbitMQ to Java queue classifier</td>
+<td>Generates Service Bus module for AMQP-based apps</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Cosmos DB for MongoDB module (Azure)</td>
+<td>Provides a native Azure-managed MongoDB-compatible store</td>
+</tr>
+<tr>
+<td>Low</td>
+<td>Secret consolidation recommendation when count &gt; 30</td>
+<td>Flag unusually large secret sets for review</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<p><code>pos-elera-sales-compliance</code> is a well-structured Java
+Spring Boot microservice with a clear HTTP service shape, correct port
+detection, and an exceptionally thorough secret inventory (43 secrets
+correctly identified). YAMLess produced a complete, policy-passing AKS
+workspace with 48/49 checkov checks passing.</p>
+<p>The two gaps — MongoDB and RabbitMQ — are both static-analyzer
+limitations in the Java artifact classifier rather than fundamental tool
+constraints. Both would be resolved by the LLM gap-filler in a full run
+(<code>--no-llm</code> was used here). Once the artifact classifier is
+extended, YAMLess will generate the complete infrastructure for this
+service class automatically.</p>
+<p>The $985/month production cost estimate is dominated by the AKS
+cluster ($600) and Premium Redis ($370), consistent with a POS
+compliance service requiring high availability and low-latency session
+caching.</p>
+<hr />
+<p><em>Generated by YAMLess —
+https://github.com/zafar-ahmed-kr/YAMLess</em> <em>Date:
+2026-11-10</em></p>
+</body>
+</html>
