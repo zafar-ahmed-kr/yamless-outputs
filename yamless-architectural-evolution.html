@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>YAMLess — Architectural Evolution</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown.min.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">YAMLess — Architectural Evolution</h1>
+</header>
+<h1 id="yamless-architectural-evolution">YAMLess: Architectural
+Evolution</h1>
+<h3
+id="how-yamless-should-evolve-to-prevent-the-gaps-found-in-manual-analysis">How
+YAMLess should evolve to prevent the gaps found in manual analysis</h3>
+<hr />
+<h2 id="background">Background</h2>
+<p>A manual analysis of
+<code>krogertechnology/pos-elera-sales-compliance</code> found key
+divergences between YAMLess-generated infrastructure and the app’s
+actual requirements. The root cause is structural — fixing gaps
+piecemeal will keep producing the same class of problems on the next
+repo.</p>
+<hr />
+<h2 id="the-three-failure-modes">The Three Failure Modes</h2>
+<h3
+id="failure-mode-1-shallow-reads-of-sources-the-analyzer-already-touches">Failure
+Mode 1: Shallow reads of sources the analyzer already touches</h3>
+<p>The analyzer reads Helm <code>values*.yaml</code>, Dockerfile, and
+Spring Boot YAML — but only for the signals it was originally designed
+to find (secret names, runtime, port). Those same files contain resource
+limits, replica counts, health paths, secondary ports, and JVM flags.
+The data is there; the reader ignores it.</p>
+<p><strong>What’s needed: a full Helm values extraction
+pass</strong></p>
+<p>Instead of <code>env_scanner.py</code> cherry-picking secret keys
+from Helm, a proper <code>helm_reader.py</code> should extract the full
+relevant surface:</p>
+<pre><code>resources.limits.memory / resources.requests.memory
+replicaCount / autoscaling.minReplicas / autoscaling.maxReplicas
+livenessProbe.httpGet.path / readinessProbe.httpGet.path
+ports (all of them, not just the first)
+javaOpts / env[].value (for -Xmx, -Dcom.sun.jmx.*)</code></pre>
+<p>This single investment closes #28 (health path), #29 (memory limits),
+#31 (min replicas), and #32 (JMX port) simultaneously, because they’re
+all in the same file. It also makes YAMLess <strong>respect the existing
+Helm configuration</strong> rather than overwriting operator knowledge
+with defaults.</p>
+<p>Similarly, the Dockerfile analyzer reads one <code>EXPOSE</code>
+line. It should collect all of them and feed
+<code>additional_ports</code>.</p>
+<hr />
+<h3
+id="failure-mode-2-runtime-is-known-but-not-used-for-runtime-specific-enrichment">Failure
+Mode 2: Runtime is known but not used for runtime-specific
+enrichment</h3>
+<p>The analyzer detects <code>runtime: java</code> early, then proceeds
+with the same generic logic regardless. Java Spring Boot apps have a
+well-known ecosystem of signals that only make sense to look for once
+you know the runtime:</p>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 39%" />
+<col style="width: 39%" />
+</colgroup>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Where it lives</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spring-boot-starter-actuator</code></td>
+<td>pom.xml</td>
+<td>health path is <code>/actuator/health</code></td>
+</tr>
+<tr>
+<td><code>spring-cloud-starter-config</code></td>
+<td>pom.xml</td>
+<td>startup dependency on external config server</td>
+</tr>
+<tr>
+<td><code>management.server.port</code></td>
+<td>application.yml</td>
+<td>secondary port needed</td>
+</tr>
+<tr>
+<td><code>-Xmx</code> in <code>JAVA_OPTS</code></td>
+<td>Dockerfile / values.yaml</td>
+<td>minimum container memory = 1.5× heap</td>
+</tr>
+<tr>
+<td><code>-Dcom.sun.jmx.remote.port</code></td>
+<td>Dockerfile / values.yaml</td>
+<td>JMX port needed</td>
+</tr>
+<tr>
+<td><code>spring-boot-starter-amqp</code> + direct reply-to</td>
+<td>source code</td>
+<td>Service Bus migration risk</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What’s needed: a runtime enrichment pass</strong></p>
+<p>After the generic dependency scan, run a runtime-specific enrichment
+step. <code>java_enricher.py</code> fires when
+<code>runtime == JAVA</code> and mines the Spring-specific signals
+above. .NET would have its own enricher for Kestrel ports, health checks
+via <code>MapHealthChecks</code>, and <code>IConfiguration</code>
+patterns.</p>
+<p>This is the structural fix for #28, #29, #30, #32, #33 — not
+individual workarounds but a single extensible enrichment layer.</p>
+<hr />
+<h3
+id="failure-mode-3-technology-mapping-with-no-migration-risk-table">Failure
+Mode 3: Technology mapping with no migration risk table</h3>
+<p>When YAMLess maps <code>spring-rabbit</code> → Azure Service Bus,
+it’s correct at the infrastructure provisioning level. But it has no
+concept of protocol compatibility between source and target. Some
+mappings are clean; others have known gotchas:</p>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 38%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr>
+<th>Source</th>
+<th>Azure target</th>
+<th>Known risks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RabbitMQ / Spring AMQP</td>
+<td>Service Bus</td>
+<td>Direct reply-to unsupported; AMQP 0-9-1 vs 1.0 differences</td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>Cosmos DB for MongoDB</td>
+<td>Aggregation pipeline coverage gaps; no transactions pre-4.0</td>
+</tr>
+<tr>
+<td>Redis Pub/Sub</td>
+<td>Azure Cache for Redis</td>
+<td>Pub/Sub supported but keyspace notifications differ</td>
+</tr>
+<tr>
+<td>Spring Cloud Config</td>
+<td>—</td>
+<td>No Azure equivalent; needs init container or sidecar</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What’s needed: a migration risk table in the
+analyzer</strong></p>
+<p>A <code>migration_risks.py</code> module with a static table keyed on
+<code>(source_technology, target_cloud)</code>. When a risk entry exists
+for a detected dependency, it gets attached to the profile as a warning
+— surfaced in the CLI output, the report, and eventually the generated
+Terraform as a comment. This turns silent failures into explicit
+migration guidance.</p>
+<hr />
+<h3 id="failure-mode-4-llm-gap-filler-is-underutilized">Failure Mode 4:
+LLM gap-filler is underutilized</h3>
+<p>The LLM gap-filler currently fires only when confidence is
+<code>low</code> or <code>medium</code> on structural fields (runtime,
+shape, secrets). But the hardest gaps — AMQP direct reply-to, Spring
+Cloud Config server topology, JVM memory tuning — are <strong>semantic
+questions about application behavior</strong>, not confidence gaps on
+profile fields.</p>
+<p><strong>What’s needed: semantic gap-filling questions</strong></p>
+<p>The gap-filler should have a second mode: given a detected technology
+combination, ask targeted semantic questions by reading source
+files:</p>
+<ul>
+<li>Java + Spring AMQP detected → “Does this app use
+<code>amq.rabbitmq.reply-to</code> or
+<code>RabbitTemplate.convertSendAndReceive()</code>?”</li>
+<li>Java + <code>CLOUD_CONFIG_URL</code> detected → “Is the config
+server in-cluster or external? What is its service name?”</li>
+<li>Java + large <code>-Xmx</code> detected → “What is the full JVM
+startup command and expected heap at steady state?”</li>
+</ul>
+<p>These aren’t low-confidence fields — they’re questions the static
+analyzer structurally cannot answer. The LLM is exactly the right tool,
+but it needs to be prompted for these cases rather than waiting for a
+confidence signal.</p>
+<hr />
+<h3
+id="failure-mode-5-no-concept-of-existing-vs.-greenfield-workload">Failure
+Mode 5: No concept of existing vs. greenfield workload</h3>
+<p>Every run generates a full cluster — VNet, AKS control plane, node
+pools, identity federation — even when the app is being migrated into an
+existing cluster. For Kroger’s context, the Terraform is largely noise;
+only <code>k8s/</code> is actionable.</p>
+<p><strong>What’s needed: a <code>--workload-only</code>
+mode</strong></p>
+<p>A flag that skips cluster provisioning modules and renders only: -
+<code>k8s/</code> manifests (Deployment, Service, Ingress, HPA,
+NetworkPolicy, SecretProviderClass) - Key Vault + secrets (the app’s
+backing secrets, not the cluster’s) - A <code>terraform/</code> stub
+that references data sources for the existing cluster rather than
+creating it</p>
+<p>The profile and renderer already separate these concerns cleanly.
+This is a renderer-level switch, not a structural change.</p>
+<hr />
+<h2 id="target-architecture">Target Architecture</h2>
+<p>The current pipeline is:</p>
+<pre><code>Static Analyzer → [LLM if low confidence] → Golden Resolver → Renderer → Validator</code></pre>
+<p>It should become:</p>
+<pre><code>Static Analyzer
+    ↓
+Runtime Enricher          (Java / .NET / Node — runtime-specific signal extraction)
+    ↓
+Helm / Manifest Reader    (resources, replicas, health paths, all ports)
+    ↓
+Migration Risk Evaluator  (source tech × target cloud → warnings)
+    ↓
+[LLM: structural gaps + semantic questions]
+    ↓
+Golden Resolver → Renderer → Validator</code></pre>
+<p>The first three new stages are all static — no API key, no cost,
+deterministic. They turn YAMLess from a <strong>best-effort inference
+tool</strong> into one that <strong>reads what operators already know
+and respects it</strong>, only falling back to defaults when the
+information genuinely isn’t there.</p>
+<p>The manual analysis found issues because YAMLess defaulted when it
+didn’t need to — the Helm chart had the memory limit, replica count,
+health path, and JMX port. The analyzer just wasn’t reading that
+far.</p>
+<hr />
+<h2 id="relationship-to-open-issues">Relationship to Open Issues</h2>
+<p>Fixes #28–#33 were filed and three blockers (#28, #29, #31) have
+already been implemented. The architectural work (#37) provides the
+structural home for all of them.</p>
+<table>
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr>
+<th>Issues</th>
+<th>Relationship to #37</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>#28, #29, #30, #31, #32, #33</td>
+<td>Will be <strong>absorbed</strong> — these fixes find their permanent
+structural home inside the Runtime Enricher, Helm Deep Reader, and
+Migration Risk layer when #37 lands. The behavior stays; the code moves.
+Not wasted work — it’s incremental delivery.</td>
+</tr>
+<tr>
+<td>#34 (secret denylist)</td>
+<td><strong>Independent</strong> — lives in <code>env_scanner.py</code>
+regardless of architecture</td>
+</tr>
+<tr>
+<td>#35 (Cosmos DB module)</td>
+<td><strong>Independent</strong> — renderer work, entirely
+unaffected</td>
+</tr>
+<tr>
+<td>#36 (secret count warning)</td>
+<td><strong>Independent</strong> — small addition to
+<code>runner.py</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Does #37 need to come before the 9 issues? No.</strong> The 9
+are targeted patches; #37 is a refactor. Ship the patches now — three of
+them (#28, #29, #31) are blockers that cause pods to OOM or
+restart-loop.</p>
+<p><strong>Does #37 render any of the 9 useless? No.</strong> The
+practical implication: when implementing #28–#33, write the code knowing
+it will eventually be refactored into the new structure. Keep each fix
+contained so the eventual absorption into #37 is clean rather than a
+rewrite.</p>
+<hr />
+<p><em>YAMLess — https://github.com/zafar-ahmed-kr/YAMLess</em>
+<em>Date: 2026-11-11</em></p>
+</body>
+</html>
