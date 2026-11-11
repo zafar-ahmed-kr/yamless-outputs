@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>YAMLess — pos-elera-sales-compliance AKS 2026-11-11</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="-" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">YAMLess — pos-elera-sales-compliance AKS
+2026-11-11</h1>
+</header>
+<h1 id="yamless-generating-azure-infrastructure-from-code">YAMLess:
+Generating Azure Infrastructure from Code</h1>
+<h3
+id="case-study-krogertechnologypos-elera-sales-compliance-all-fixes-through-36">Case
+Study — krogertechnology/pos-elera-sales-compliance (all fixes through
+#36)</h3>
+<hr />
+<h2 id="what-is-yamless">What is YAMLess?</h2>
+<p>YAMLess is an <strong>Infrastructure from Code (IFC)</strong> tool.
+Given a code repository, it produces a complete, policy-validated
+Terraform workspace — with no configuration files, no schema to fill in,
+and no IaC expertise required from the developer.</p>
+<p>The pipeline has four stages:</p>
+<pre><code>Repo on disk
+    │
+    ▼
+┌─────────────────────┐
+│  1. Static Analyzer │  Reads Dockerfile, pom.xml, .env files, Helm values,
+│                     │  Spring Boot YAML, source code (Java @Value, env refs).
+│                     │  Produces a typed AppProfile with confidence scores.
+└──────────┬──────────┘
+           │  (fires only when any field is low/medium confidence)
+           ▼
+┌─────────────────────┐
+│  2. LLM Gap-Filler  │  Claude reads relevant source files and fills in what
+│                     │  static analysis couldn&#39;t determine — via structured
+│                     │  tool use only, no free-form parsing.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  3. Golden Resolver │  Loads golden-profiles/&lt;resource&gt;.json — per-env
+│                     │  sizing standards, cost estimate, governance gates.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  4. Renderer        │  Jinja2 root templates + static Terraform modules →
+│                     │  ready-to-apply workspace. Outputs AKS + K8s manifests.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  5. Validator       │  checkov policy-as-code. Security posture is enforced
+│                     │  by static module files — the LLM cannot affect it.
+└─────────────────────┘</code></pre>
+<hr />
+<h2 id="what-changed-since-v2">What Changed Since v2</h2>
+<p>This run incorporates six fixes shipped across issues <a
+href="https://github.com/zafar-ahmed-kr/YAMLess/issues/28">#28</a>, <a
+href="https://github.com/zafar-ahmed-kr/YAMLess/issues/29">#29</a>, <a
+href="https://github.com/zafar-ahmed-kr/YAMLess/issues/31">#31</a>, <a
+href="https://github.com/zafar-ahmed-kr/YAMLess/issues/34">#34</a>, <a
+href="https://github.com/zafar-ahmed-kr/YAMLess/issues/35">#35</a>, and
+<a href="https://github.com/zafar-ahmed-kr/YAMLess/issues/36">#36</a>,
+all merged to main on 2026-11-11.</p>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 15%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Fix</th>
+<th>Effect on this repo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>#28</td>
+<td>Read <code>management.endpoints.web.base-path</code> from Spring
+Boot YAML; use <code>spring-boot-starter-actuator</code> as hint</td>
+<td><code>health_check_path: /health</code> →
+<code>/actuator/health</code></td>
+</tr>
+<tr>
+<td>#29</td>
+<td>Extract <code>resources.limits/requests.memory</code> from Helm
+<code>values.yaml</code>; fallback to <code>-Xmx</code> inference</td>
+<td><code>mem_limit: null</code> → <code>1152Mi</code>;
+<code>mem_request: null</code> → <code>256Mi</code></td>
+</tr>
+<tr>
+<td>#31</td>
+<td>Extract <code>replicaCount</code> /
+<code>autoscaling.minReplicas</code> from Helm
+<code>values.yaml</code></td>
+<td>No change — <code>replicaCount</code> absent in this repo’s
+Helm</td>
+</tr>
+<tr>
+<td>#34</td>
+<td>Added <code>_SECRET_DENYLIST_RE</code> to filter <code>GF_</code>,
+<code>GRAFANA_</code>, <code>SWAGGER_</code>, <code>SPRINGDOC_</code>,
+<code>ACTUATOR_</code> prefixed vars</td>
+<td>3 vars removed: <code>GF_SECURITY_ADMIN_PASSWORD</code>,
+<code>SWAGGER_URL</code>, <code>SWAGGER_CONFIG_URL</code></td>
+</tr>
+<tr>
+<td>#35</td>
+<td>Added <code>azurerm_cosmosdb_account</code> module (MongoDB kind)
+for AKS and Container Apps renderers; <code>MONGODB_URI</code> /
+<code>SPRING_DATA_MONGODB_URI</code> marked
+<code>infra_managed</code></td>
+<td>Cosmos DB module now generated; 2 redundant KV secrets
+eliminated</td>
+</tr>
+<tr>
+<td>#36</td>
+<td>Emit warning when <code>len(secrets) &gt; 30</code>; surface in CLI
+and profile</td>
+<td>⚠️ “High secret count (39)” warning emitted</td>
+</tr>
+</tbody>
+</table>
+<h3 id="infrastructure-delta">Infrastructure delta</h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>v2</th>
+<th>This run</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AKS Cluster</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Redis Cache (P1)</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Service Bus</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><strong>Cosmos DB for MongoDB</strong></td>
+<td><strong>✗ missing</strong></td>
+<td><strong>✓ generated</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="applying-yamless-to-pos-elera-sales-compliance">Applying YAMLess
+to pos-elera-sales-compliance</h2>
+<p><a
+href="https://github.com/krogertechnology/pos-elera-sales-compliance">pos-elera-sales-compliance</a>
+is a Kroger Technology Java Spring Boot microservice responsible for POS
+(point-of-sale) sales compliance. It integrates with the ELERA POS
+platform, Ping Identity for OAuth2/OIDC SSO, Kount for fraud detection,
+MongoDB for persistence, and RabbitMQ for messaging.</p>
+<h3 id="command-run">Command run</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">yamless</span> generate https://github.com/krogertechnology/pos-elera-sales-compliance <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--no-llm</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--target</span> aks <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out-dir</span> ~/yamless/outputs/pos-elera-sales-compliance-aks-2026-11-11</span></code></pre></div>
+<h3 id="profile-detected">Profile detected</h3>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 34%" />
+<col style="width: 27%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detected value</th>
+<th>Confidence</th>
+<th>Δ vs v2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td><code>java</code></td>
+<td>high</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Runtime version</td>
+<td><code>25</code></td>
+<td>high</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>8080</code></td>
+<td>—</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Shape</td>
+<td><code>http-service</code></td>
+<td>high</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Health check path</td>
+<td><code>/actuator/health</code></td>
+<td>—</td>
+<td><strong><code>/health</code> →
+<code>/actuator/health</code></strong> ← fix #28</td>
+</tr>
+<tr>
+<td>Memory limit</td>
+<td><code>1152Mi</code></td>
+<td>—</td>
+<td><strong><code>null</code> → <code>1152Mi</code></strong> ← fix
+#29</td>
+</tr>
+<tr>
+<td>Memory request</td>
+<td><code>256Mi</code></td>
+<td>—</td>
+<td><strong><code>null</code> → <code>256Mi</code></strong> ← fix
+#29</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>mongodb</code></td>
+<td>high</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Cache</td>
+<td><code>true</code></td>
+<td>high</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td><code>true</code></td>
+<td>high</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>39 detected</td>
+<td>high</td>
+<td><strong>42 → 39</strong> ← fix #34</td>
+</tr>
+<tr>
+<td>Min replicas</td>
+<td><code>1</code></td>
+<td>—</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Max replicas</td>
+<td><code>10</code></td>
+<td>—</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Ingress</td>
+<td><code>external: true</code>, port <code>8080</code></td>
+<td>high</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Scale trigger</td>
+<td><code>http</code></td>
+<td>high</td>
+<td>unchanged</td>
+</tr>
+</tbody>
+</table>
+<h3 id="output-generated">Output generated</h3>
+<pre><code>pos-elera-sales-compliance-aks-2026-11-11/
+├── profile.json
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── providers.tf
+│   ├── backend.tf
+│   ├── governance.tf
+│   └── modules/
+│       ├── aks_cluster/
+│       ├── aks_workload_identity/
+│       ├── keyvault/
+│       ├── cosmos/         ← NEW: Cosmos DB for MongoDB
+│       ├── redis/
+│       ├── servicebus/
+│       ├── vnet/
+│       └── (postgres, mysql, storage, event_hubs — generated but unused)
+└── k8s/
+    ├── namespace.yaml
+    ├── service-account.yaml
+    ├── secret-provider-class.yaml
+    ├── deployment.yaml
+    ├── service.yaml
+    ├── ingress.yaml
+    ├── hpa.yaml
+    └── network-policy.yaml</code></pre>
+<p><strong>38 .tf files + 8 K8s manifests written.</strong></p>
+<h3 id="cosmos-db-module-new-in-this-run">Cosmos DB module (new in this
+run)</h3>
+<p>The generated <code>module "cosmos"</code> block in
+<code>main.tf</code>, sized by
+<code>golden-profiles/azure-cosmos-db.json</code> for
+<code>production</code>:</p>
+<pre class="hcl"><code>module &quot;cosmos&quot; {
+  source              = &quot;./modules/cosmos&quot;
+  app_name            = local.app_name
+  environment         = local.environment
+  location            = local.location
+  resource_group_name = azurerm_resource_group.main.name
+  tags                = local.tags
+  keyvault_id         = module.keyvault.id
+  keyvault_rbac_ready = module.keyvault
+  consistency_level   = &quot;BoundedStaleness&quot;
+  throughput_mode     = &quot;autoscale&quot;
+  max_autoscale_ru    = 10000
+  server_version      = &quot;4.2&quot;
+}</code></pre>
+<p>Golden standards enforced: <code>kind = "MongoDB"</code>,
+<code>EnableMongo</code> capability, public network access disabled,
+MongoDB API v4.2, writes <code>mongodb-url</code> to Key Vault — no
+connection strings in plaintext.</p>
+<h3 id="deployment-manifest-key-fields-fixed-in-this-run">Deployment
+manifest (key fields fixed in this run)</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">containers</span><span class="kw">:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> pos-elera-sales-compliance</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ports</span><span class="kw">:</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">containerPort</span><span class="kw">:</span><span class="at"> </span><span class="dv">8080</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">livenessProbe</span><span class="kw">:</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">httpGet</span><span class="kw">:</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">path</span><span class="kw">:</span><span class="at"> /actuator/health</span><span class="co">     # was /health in v2</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">port</span><span class="kw">:</span><span class="at"> </span><span class="dv">8080</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">initialDelaySeconds</span><span class="kw">:</span><span class="at"> </span><span class="dv">30</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">periodSeconds</span><span class="kw">:</span><span class="at"> </span><span class="dv">10</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">failureThreshold</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">readinessProbe</span><span class="kw">:</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">httpGet</span><span class="kw">:</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">path</span><span class="kw">:</span><span class="at"> /actuator/health</span><span class="co">     # was /health in v2</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">port</span><span class="kw">:</span><span class="at"> </span><span class="dv">8080</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">initialDelaySeconds</span><span class="kw">:</span><span class="at"> </span><span class="dv">10</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">periodSeconds</span><span class="kw">:</span><span class="at"> </span><span class="dv">5</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">failureThreshold</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 250m</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 256Mi</span><span class="co">              # was default in v2</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">limits</span><span class="kw">:</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 500m</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 1152Mi</span><span class="co">             # was default 512Mi in v2</span></span></code></pre></div>
+<h3 id="cost-estimate">Cost estimate</h3>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Monthly</th>
+<th>Annual</th>
+<th>Δ vs v2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dev</td>
+<td>$170 – $245</td>
+<td>$2,040 – $2,940</td>
+<td>+$5–$30</td>
+</tr>
+<tr>
+<td>Staging</td>
+<td>$392 – $542</td>
+<td>$4,704 – $6,504</td>
+<td>+$50–$150</td>
+</tr>
+<tr>
+<td>Production</td>
+<td>$1,217 – $1,867</td>
+<td>$14,604 – $22,404</td>
+<td>+$200–$800</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Production breakdown:</strong></p>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 34%" />
+<col style="width: 15%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Cost/month</th>
+<th>SKU</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AKS Cluster</td>
+<td>$600</td>
+<td>Standard</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td><strong>Cosmos DB (MongoDB)</strong></td>
+<td><strong>$200 – $800</strong></td>
+<td><strong>Autoscale 10,000 RU</strong></td>
+<td><strong>new</strong></td>
+</tr>
+<tr>
+<td>Redis Cache</td>
+<td>$370</td>
+<td>Premium P1</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Service Bus</td>
+<td>$32 – $82</td>
+<td>Standard</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td>$15</td>
+<td>Premium</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>$1,217 – $1,867</strong></td>
+<td></td>
+<td>+$200–$800 vs v2</td>
+</tr>
+</tbody>
+</table>
+<p>The Cosmos DB range reflects autoscale RU consumption variability —
+$200/mo at 2,000 RU baseline, up to $800/mo at peak 10,000 RU.</p>
+<h3 id="secrets-detected-39">Secrets detected (39)</h3>
+<p>Three Grafana/Swagger vars removed by denylist (#34).
+<code>MONGODB_URI</code> and <code>SPRING_DATA_MONGODB_URI</code> are
+<code>infra_managed</code> (#35) — <code>mongodb-url</code> written by
+the Cosmos module is authoritative.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr>
+<th>Group</th>
+<th>Count</th>
+<th>Key examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ping Identity / OIDC</td>
+<td>13</td>
+<td><code>PINGFED_CLIENT_SECRET</code>,
+<code>PING_AUTH_ISSUER_URI</code>, <code>PINGFED_DISCOVERY_URL</code>,
+<code>PING_CLIENT_ID</code></td>
+</tr>
+<tr>
+<td>RabbitMQ / AMQP</td>
+<td>3</td>
+<td><code>SPRING_RABBITMQ_PASSWORD</code>,
+<code>AMQP_BROKER_PASSWORD</code>, <code>MQ_PASSWORD</code></td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>2</td>
+<td><code>REDIS_HOST</code>, <code>REDIS_KEY</code></td>
+</tr>
+<tr>
+<td>ELERA POS</td>
+<td>3</td>
+<td><code>ELERA_BASE_URL</code>,
+<code>ELERA_SERVICE_ACCOUNT_PASSWORD</code>,
+<code>ELERA_REDIRECT_URI</code></td>
+</tr>
+<tr>
+<td>Kount fraud</td>
+<td>2</td>
+<td><code>KOUNT_API_KEY</code>, <code>KOUNT_BASE_URL</code></td>
+</tr>
+<tr>
+<td>Spring Cloud Config</td>
+<td>1</td>
+<td><code>CLOUD_CONFIG_URL</code></td>
+</tr>
+<tr>
+<td>Compliance APIs</td>
+<td>4</td>
+<td><code>COMPLIANCE_BASE_URL</code>, <code>DB_URI</code>,
+<code>COM_KROGER_POS_COMPLIANCELOGGINGAPI_ENDPOINT</code></td>
+</tr>
+<tr>
+<td>Auth / crypto</td>
+<td>2</td>
+<td><code>CIS_RSA_PUBLIC_KEY</code>,
+<code>AUTH_TIMEOUT_CONNECTION</code></td>
+</tr>
+<tr>
+<td>Other endpoints</td>
+<td>9</td>
+<td><code>PING_PONG_BASE_URL</code>,
+<code>LOADER_CATALOG_BASE_URL</code>, <code>AUTHORIZATION_*</code>,
+etc.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>Warning:</strong> High secret count (39) detected. Review
+whether all env vars need to be in Key Vault — consider grouping with a
+secrets manager pattern or filtering observability vars.</p>
+</blockquote>
+<hr />
+<h2 id="what-was-missed">What was missed</h2>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 41%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Missing</th>
+<th>Root cause</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AMQP direct reply-to migration risk</td>
+<td>No Migration Risk Evaluator — <code>spring-rabbit</code> → Service
+Bus mapping silently drops AMQP 0-9-1 / 1.0 protocol
+incompatibility</td>
+<td>App may fail on <code>RabbitTemplate.convertSendAndReceive()</code>
+or <code>amq.rabbitmq.reply-to</code> patterns</td>
+</tr>
+<tr>
+<td>JMX / management secondary port</td>
+<td>Dockerfile analyzer reads only the first <code>EXPOSE</code>
+line</td>
+<td>Missing <code>containerPort</code>; no NetworkPolicy rule for
+management port</td>
+</tr>
+<tr>
+<td>Spring Cloud Config startup dependency</td>
+<td><code>CLOUD_CONFIG_URL</code> captured as a secret but not modeled
+as a startup dependency</td>
+<td>Pod will fail to start if config server unreachable; no init
+container generated</td>
+</tr>
+</tbody>
+</table>
+<p>All three gaps are non-blocking for pod scheduling but represent
+migration risks. They are driving use cases for the Runtime Enricher and
+Migration Risk Evaluator in architectural evolution issue <a
+href="https://github.com/zafar-ahmed-kr/YAMLess/issues/37">#37</a>.</p>
+<hr />
+<h2 id="improvement-roadmap">Improvement Roadmap</h2>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 30%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Change</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><del>High</del></td>
+<td><del>Add MongoDB Spring Data to Java artifact classifier</del></td>
+<td>✅ Done — #26</td>
+</tr>
+<tr>
+<td><del>High</del></td>
+<td><del>Add Spring AMQP / RabbitMQ to Java queue classifier</del></td>
+<td>✅ Done — #27</td>
+</tr>
+<tr>
+<td><del>High</del></td>
+<td><del>Health check path from actuator / Spring Boot YAML</del></td>
+<td>✅ Done — #28</td>
+</tr>
+<tr>
+<td><del>High</del></td>
+<td><del>Memory limits from Helm values / JVM -Xmx inference</del></td>
+<td>✅ Done — #29</td>
+</tr>
+<tr>
+<td><del>Medium</del></td>
+<td><del>Min replicas from Helm values</del></td>
+<td>✅ Done — #31</td>
+</tr>
+<tr>
+<td><del>Medium</del></td>
+<td><del>Secret filter denylist (Grafana, Swagger, Springdoc)</del></td>
+<td>✅ Done — #34</td>
+</tr>
+<tr>
+<td><del>High</del></td>
+<td><del>Cosmos DB for MongoDB module (AKS + Container Apps)</del></td>
+<td>✅ Done — #35</td>
+</tr>
+<tr>
+<td><del>Low</del></td>
+<td><del>Warn when secret count exceeds 30</del></td>
+<td>✅ Done — #36</td>
+</tr>
+<tr>
+<td>High</td>
+<td>AMQP direct reply-to migration risk surfaced as warning</td>
+<td>Open — #30, absorbed into #37</td>
+</tr>
+<tr>
+<td>High</td>
+<td>JMX / management secondary ports detected and exposed</td>
+<td>Open — #32, absorbed into #37</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Spring Cloud Config startup dependency modeled</td>
+<td>Open — #33, absorbed into #37</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Architectural evolution: Runtime Enricher, Helm Deep Reader,
+Migration Risk layer</td>
+<td>Open — #37</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>With all fixes through issue #36 applied, YAMLess now produces a
+substantially more accurate infrastructure workspace for this service.
+The key gains since v2: health checks now probe
+<code>/actuator/health</code> rather than the Spring Boot default
+fallback; container memory is sized to the Helm-specified limit of
+<code>1152Mi</code> (preventing OOM kills on the previous
+<code>512Mi</code> default); the Cosmos DB for MongoDB module is
+generated with production-tier autoscale configuration; and 3
+Grafana/Swagger vars are no longer erroneously written to Key Vault.</p>
+<p>Three migration risks remain undetected — AMQP protocol
+incompatibility, secondary ports, and Spring Cloud Config topology — all
+scoped to the Runtime Enricher and Migration Risk Evaluator in #37.</p>
+<p>Production cost increases by $200–$800/month versus v2 (Cosmos DB
+autoscale), bringing the estimate to
+<strong>$1,217–$1,867/month</strong>.</p>
+<hr />
+<p><em>Generated by YAMLess —
+https://github.com/zafar-ahmed-kr/YAMLess</em> <em>Date:
+2026-11-11</em></p>
+</body>
+</html>
