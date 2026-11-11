@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YAMLess — pos-elera-sales-compliance Analysis Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: #1a1a2e;
+      background: #f5f7fb;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 940px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: #ffffff;
+      padding: 2.5rem 2.5rem 2rem;
+    }
+    .header h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.4rem;
+    }
+    .header .subtitle {
+      font-size: 1rem;
+      color: #a8b8d8;
+      margin-bottom: 1.4rem;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .meta-item {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      padding: 0.55rem 0.85rem;
+    }
+    .meta-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7899c8;
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+    .meta-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .content { padding: 2.5rem; }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f3460;
+      margin: 2.2rem 0 0.9rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid #e8ecf4;
+    }
+    h2:first-child { margin-top: 0; }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 1.4rem 0 0.6rem;
+    }
+
+    p { margin-bottom: 0.85rem; color: #333; }
+
+    a { color: #0f3460; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.8rem 0 1.2rem;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #f0f4fc;
+      color: #0f3460;
+      font-weight: 700;
+      text-align: left;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid #dde3f0;
+    }
+    td {
+      padding: 0.55rem 0.9rem;
+      border: 1px solid #e5eaf5;
+      color: #333;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f8faff; }
+
+    code {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.85em;
+      background: #f0f4fc;
+      border: 1px solid #dde3f0;
+      border-radius: 3px;
+      padding: 0.1em 0.4em;
+    }
+    pre {
+      background: #1a1a2e;
+      color: #c8d8f8;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      font-family: "Courier New", Courier, monospace;
+      margin: 0.8rem 0 1.2rem;
+      line-height: 1.5;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .badge-green  { background: #d4edda; color: #155724; }
+    .badge-orange { background: #fff3cd; color: #856404; }
+    .badge-blue   { background: #d0e8ff; color: #0c4a7e; }
+    .badge-red    { background: #f8d7da; color: #721c24; }
+
+    .summary-box {
+      background: #f0f7ff;
+      border: 1px solid #b8d4f0;
+      border-left: 4px solid #0f3460;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0 1.5rem;
+    }
+    .summary-box p { margin: 0; }
+
+    .gap-box {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-left: 4px solid #f59e0b;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0 1.5rem;
+    }
+    .gap-box p { margin: 0 0 0.4rem; }
+    .gap-box p:last-child { margin: 0; }
+
+    .run-box {
+      background: #f4f8ff;
+      border: 1px solid #c5d8f5;
+      border-left: 4px solid #0f3460;
+      border-radius: 6px;
+      padding: 0.7rem 1.2rem;
+      margin: 0.5rem 0 1rem;
+      font-size: 0.9rem;
+      color: #333;
+    }
+
+    .checkov-pass {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-left: 4px solid #28a745;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+    }
+    .checkov-fail {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-left: 4px solid #fd7e14;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+    }
+
+    .recommendation-box {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      border-left: 4px solid #2e7d32;
+      border-radius: 6px;
+      padding: 0.8rem 1.2rem;
+      margin: 0.5rem 0 1.2rem;
+    }
+    .recommendation-box p { margin: 0; }
+
+    .footer {
+      background: #f5f7fb;
+      border-top: 1px solid #e8ecf4;
+      padding: 1.2rem 2.5rem;
+      font-size: 0.82rem;
+      color: #6b7280;
+      text-align: center;
+    }
+    .footer a { color: #0f3460; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>YAMLess Analysis Report</h1>
+    <div class="subtitle">pos-elera-sales-compliance &mdash; Container Apps + AKS runs</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span class="meta-label">Date</span>
+        <span class="meta-value">2026-11-10</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Runtime</span>
+        <span class="meta-value">Java 25</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Shape</span>
+        <span class="meta-value">http-service</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Runs</span>
+        <span class="meta-value">Container Apps + AKS</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Checkov (CA)</span>
+        <span class="meta-value">30 / 31</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Checkov (AKS)</span>
+        <span class="meta-value">48 / 49</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Secrets</span>
+        <span class="meta-value">43 detected</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Mode</span>
+        <span class="meta-value">--no-llm</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <h2>App Summary</h2>
+    <table>
+      <thead><tr><th>Field</th><th>Value</th><th>Confidence</th></tr></thead>
+      <tbody>
+        <tr><td>Name</td><td><code>pos-elera-sales-compliance</code></td><td>—</td></tr>
+        <tr><td>Runtime</td><td>Java</td><td><span class="badge badge-green">high</span></td></tr>
+        <tr><td>Runtime version</td><td>25</td><td><span class="badge badge-green">high</span></td></tr>
+        <tr><td>Shape</td><td><code>http-service</code></td><td><span class="badge badge-green">high</span></td></tr>
+        <tr><td>Target port</td><td>8080</td><td>—</td></tr>
+        <tr><td>Dockerfile</td><td>Yes</td><td>—</td></tr>
+        <tr><td>Health check</td><td><code>/health</code></td><td>—</td></tr>
+        <tr><td>Repo</td><td><a href="https://github.com/krogertechnology/pos-elera-sales-compliance">github.com/krogertechnology/pos-elera-sales-compliance</a></td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Detected Dependencies</h2>
+    <table>
+      <thead><tr><th>Dependency</th><th>Detected</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Cache (Redis)</td><td><span class="badge badge-green">Yes</span></td><td>Confirmed via <code>REDIS_HOST</code> / <code>REDIS_KEY</code></td></tr>
+        <tr><td>Storage</td><td><span class="badge badge-blue">No</span></td><td>—</td></tr>
+        <tr><td>Queue (Service Bus)</td><td><span class="badge badge-orange">No *</span></td><td>RabbitMQ/AMQP detected via secrets — scanner gap</td></tr>
+        <tr><td>Kafka (Event Hubs)</td><td><span class="badge badge-blue">No</span></td><td>—</td></tr>
+        <tr><td>Database (SQL)</td><td><span class="badge badge-orange">No *</span></td><td>MongoDB detected via secrets — scanner gap</td></tr>
+      </tbody>
+    </table>
+
+    <div class="gap-box">
+      <p><strong>Dependency Detection Gaps (static scanner — both runs)</strong></p>
+      <p><strong>MongoDB</strong> — <code>MONGODB_URI</code> and <code>SPRING_DATA_MONGODB_URI</code> are present in the secret surface. The static scanner only classifies SQL databases (postgres / mysql); MongoDB is not detected. <code>storage: false</code> and <code>database: null</code> are returned despite an active MongoDB connection.</p>
+      <p><strong>RabbitMQ / AMQP</strong> — <code>SPRING_RABBITMQ_PASSWORD</code> and <code>AMQP_BROKER_PASSWORD</code> indicate a live RabbitMQ or AMQP message broker. The scanner's <code>queue</code> flag targets Azure Service Bus patterns; RabbitMQ/AMQP signals are not matched. <code>queue: false</code> is returned.</p>
+      <p>Both gaps would be caught by the <strong>LLM gap-filler</strong> when run with <code>ANTHROPIC_API_KEY</code> set.</p>
+    </div>
+
+    <!-- ========== RUN 1 ========== -->
+    <h2>Run 1 &mdash; Azure Container Apps</h2>
+    <div class="run-box">
+      <strong>Command:</strong> <code>yamless generate pos-elera-sales-compliance --target container-apps --no-llm --validate</code>
+    </div>
+
+    <h3>Generated Infrastructure</h3>
+    <p><strong>35 Terraform files</strong> written to <code>outputs/pos-elera-sales-compliance-infra/</code></p>
+
+    <h3>Cost Estimate</h3>
+    <table>
+      <thead><tr><th>Resource</th><th>Monthly (low)</th><th>Monthly (high)</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Container App</td><td>$263</td><td>$657</td><td>1&#8594;2 replicas under load</td></tr>
+        <tr><td>Azure Key Vault</td><td>$15</td><td>$15</td><td>43 secrets stored</td></tr>
+        <tr><td>Azure Cache for Redis (P1)</td><td>$370</td><td>$370</td><td>P1 SKU for compliance workload</td></tr>
+        <tr><td><strong>Total</strong></td><td><strong>$648/mo</strong></td><td><strong>$1,042/mo</strong></td><td>Variable (consumption-based)</td></tr>
+        <tr><td><strong>Annual</strong></td><td><strong>$7,776</strong></td><td><strong>$12,504</strong></td><td></td></tr>
+      </tbody>
+    </table>
+    <p>The Container App cost range reflects consumption-based scaling (1&ndash;2 replicas). Redis P1 ($370/mo) dominates the cost profile.</p>
+
+    <h3>Checkov Results</h3>
+    <div class="checkov-pass">
+      <strong>30 / 31 checks passed</strong> &mdash; 1 MEDIUM failure (false positive)
+    </div>
+    <div class="checkov-fail">
+      <p><strong>CKV_AZURE_43</strong> &mdash; Storage account name does not follow naming rules</p>
+      <p style="margin-top:0.5rem;"><strong>Severity:</strong> MEDIUM &nbsp;&nbsp; <strong>Assessment:</strong> False positive &mdash; <code>storage: false</code> in this profile; Checkov scans the uninstantiated <code>storage</code> module from the yamless module library. No action required.</p>
+    </div>
+
+    <!-- ========== RUN 2 ========== -->
+    <h2>Run 2 &mdash; Azure AKS</h2>
+    <div class="run-box">
+      <strong>Command:</strong> <code>yamless generate pos-elera-sales-compliance --target aks --no-llm --validate</code>
+    </div>
+
+    <h3>Generated Infrastructure</h3>
+    <p><strong>35 Terraform files</strong> + <strong>8 Kubernetes manifests (.yaml)</strong> written to <code>outputs/pos-elera-sales-compliance-aks-infra/</code></p>
+    <p>K8s manifests: <code>namespace.yaml</code>, <code>service-account.yaml</code>, <code>secret-provider-class.yaml</code>, <code>deployment.yaml</code>, <code>service.yaml</code>, <code>ingress.yaml</code>, <code>hpa.yaml</code>, <code>pdb.yaml</code></p>
+
+    <h3>Cost Estimate</h3>
+    <table>
+      <thead><tr><th>Resource</th><th>Monthly</th><th>Annual</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>AKS Cluster</td><td>$600</td><td>$7,200</td><td>Standard tier, 2-node system pool</td></tr>
+        <tr><td>Azure Cache for Redis (P1)</td><td>$370</td><td>$4,440</td><td>P1 SKU for compliance workload</td></tr>
+        <tr><td>Azure Key Vault</td><td>$15</td><td>$180</td><td>43 secrets stored</td></tr>
+        <tr><td><strong>Total</strong></td><td><strong>$985/mo</strong></td><td><strong>$11,820</strong></td><td>Fixed &mdash; node pool always running</td></tr>
+      </tbody>
+    </table>
+    <p>AKS cost is fixed regardless of replica count, since the node pool runs continuously. Appropriate for workloads with steady, predictable traffic.</p>
+
+    <h3>Checkov Results</h3>
+    <div class="checkov-pass">
+      <strong>48 / 49 checks passed</strong> &mdash; 1 MEDIUM failure (false positive)
+    </div>
+    <div class="checkov-fail">
+      <p><strong>CKV_AZURE_43</strong> &mdash; Storage account name does not follow naming rules</p>
+      <p style="margin-top:0.5rem;"><strong>Severity:</strong> MEDIUM &nbsp;&nbsp; <strong>Assessment:</strong> Same false positive as the Container Apps run &mdash; Checkov scans the uninstantiated <code>storage</code> module. No action required.</p>
+    </div>
+
+    <!-- ========== COMPARISON ========== -->
+    <h2>Run Comparison</h2>
+    <table>
+      <thead><tr><th></th><th>Container Apps</th><th>AKS</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Target flag</strong></td><td><code>--target container-apps</code></td><td><code>--target aks</code></td></tr>
+        <tr><td><strong>Cost</strong></td><td>$648&ndash;$1,042/mo variable</td><td>$985/mo fixed</td></tr>
+        <tr><td><strong>Annual</strong></td><td>$7,776&ndash;$12,504</td><td>$11,820</td></tr>
+        <tr><td><strong>Terraform files</strong></td><td>35 .tf</td><td>35 .tf</td></tr>
+        <tr><td><strong>K8s manifests</strong></td><td>None</td><td>8 .yaml</td></tr>
+        <tr><td><strong>Checkov passed</strong></td><td>30 / 31</td><td>48 / 49</td></tr>
+        <tr><td><strong>Checkov failure</strong></td><td>CKV_AZURE_43 (false positive)</td><td>CKV_AZURE_43 (false positive)</td></tr>
+        <tr><td><strong>Scaling model</strong></td><td>Consumption-based (HTTP trigger)</td><td>Node pool + HPA</td></tr>
+        <tr><td><strong>Control plane</strong></td><td>Managed (no K8s exposure)</td><td>Full AKS control plane</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Target Recommendation</h3>
+    <div class="recommendation-box">
+      <p><strong>AKS ($985/mo fixed) is preferred</strong> for <code>pos-elera-sales-compliance</code>. POS compliance services typically run at steady load with predictable traffic patterns &mdash; AKS fixed pricing is more cost-predictable than the Container Apps variable range ($648&ndash;$1,042/mo). AKS also provides a full Kubernetes control plane, enabling fine-grained network policies, pod security standards, and workload identity integration appropriate for a compliance workload. The 8 K8s manifests generated by the AKS run enforce topology spread constraints, pod disruption budgets, and HPA stabilization windows out of the box.</p>
+    </div>
+
+    <!-- ========== SECRETS ========== -->
+    <h2>Secrets Breakdown</h2>
+    <p><strong>Total secrets detected: 43</strong></p>
+
+    <h3>Ping Identity / OIDC (17 secrets)</h3>
+    <p>This service integrates with both <strong>PingFederate</strong> (enterprise on-premises SSO) and <strong>PingOne</strong> (cloud SSO) simultaneously &mdash; a dual-IdP OIDC pattern, typical during SSO migrations or when serving multiple client types.</p>
+    <table>
+      <thead><tr><th>Secret</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>AUTHORIZATION_OAUTH2_REDIRECT_URI</code></td><td>OAuth2 redirect callback</td></tr>
+        <tr><td><code>AUTHORIZATION_PING_BASE_ENDPOINT</code></td><td>PingFederate base URL</td></tr>
+        <tr><td><code>AUTHORIZATION_PING_PASSWORD</code></td><td>PingFederate service account password</td></tr>
+        <tr><td><code>PINGFED_CLIENT_SECRET</code></td><td>PingFederate client secret</td></tr>
+        <tr><td><code>PINGFED_DISCOVERY_URL</code></td><td>OIDC discovery endpoint</td></tr>
+        <tr><td><code>PING_AUTH_ISSUER_URI</code></td><td>PingOne JWT issuer</td></tr>
+        <tr><td><code>PING_AUTH_JWK_SET_URI</code></td><td>PingOne JWK public keys</td></tr>
+        <tr><td><code>PING_BASE_ENDPOINT</code></td><td>Ping Identity base URL</td></tr>
+        <tr><td><code>PING_CLIENT_ID</code></td><td>Ping OAuth2 client ID</td></tr>
+        <tr><td><code>PING_FED_AUTH_ISSUER_URI</code></td><td>PingFederate JWT issuer</td></tr>
+        <tr><td><code>PING_FED_AUTH_JWT_SET_URI</code></td><td>PingFederate JWK public keys</td></tr>
+        <tr><td><code>PING_PASSWORD</code></td><td>Ping service account password</td></tr>
+        <tr><td><code>PING_PONG_BASE_URL</code></td><td>Ping connectivity check endpoint</td></tr>
+        <tr><td><code>PING_USERNAME</code></td><td>Ping service account username</td></tr>
+        <tr><td><code>SPRING_SECURITY_OAUTH2_PING_FED_JWT_ISSUER_URI</code></td><td>Spring Security PingFed issuer</td></tr>
+        <tr><td><code>SPRING_SECURITY_OAUTH2_PING_FED_JWT_JWK_SET_URI</code></td><td>Spring Security PingFed JWK</td></tr>
+        <tr><td><code>SPRING_SECURITY_OAUTH2_PING_ONE_JWT_ISSUER_URI</code></td><td>Spring Security PingOne issuer</td></tr>
+        <tr><td><code>SPRING_SECURITY_OAUTH2_PING_ONE_JWT_JWK_SET_URI</code></td><td>Spring Security PingOne JWK</td></tr>
+      </tbody>
+    </table>
+
+    <h3>MongoDB (2 secrets)</h3>
+    <table>
+      <thead><tr><th>Secret</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>MONGODB_URI</code></td><td>MongoDB connection string</td></tr>
+        <tr><td><code>SPRING_DATA_MONGODB_URI</code></td><td>Spring Data MongoDB connection (may target the same host)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>RabbitMQ / AMQP (3 secrets)</h3>
+    <table>
+      <thead><tr><th>Secret</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>AMQP_BROKER_PASSWORD</code></td><td>AMQP broker authentication</td></tr>
+        <tr><td><code>MQ_PASSWORD</code></td><td>Message queue password (likely same broker)</td></tr>
+        <tr><td><code>SPRING_RABBITMQ_PASSWORD</code></td><td>Spring AMQP RabbitMQ password</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Kount Fraud Detection (2 secrets)</h3>
+    <table>
+      <thead><tr><th>Secret</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>KOUNT_API_KEY</code></td><td>Kount fraud/risk API key</td></tr>
+        <tr><td><code>KOUNT_BASE_URL</code></td><td>Kount API endpoint</td></tr>
+      </tbody>
+    </table>
+
+    <h3>ELERA POS Platform (3 secrets)</h3>
+    <table>
+      <thead><tr><th>Secret</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>ELERA_BASE_URL</code></td><td>ELERA POS platform base URL</td></tr>
+        <tr><td><code>ELERA_REDIRECT_URI</code></td><td>ELERA OAuth/SSO redirect</td></tr>
+        <tr><td><code>ELERA_SERVICE_ACCOUNT_PASSWORD</code></td><td>ELERA service account credential</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Redis Cache (2 secrets)</h3>
+    <table>
+      <thead><tr><th>Secret</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>REDIS_HOST</code></td><td>Redis host / connection string</td></tr>
+        <tr><td><code>REDIS_KEY</code></td><td>Redis access key / password</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Other External Services (remaining)</h3>
+    <table>
+      <thead><tr><th>Secret</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>AUTH_TIMEOUT_CONNECTION</code></td><td>Auth service connection timeout</td></tr>
+        <tr><td><code>AUTH_TIMEOUT_READ</code></td><td>Auth service read timeout</td></tr>
+        <tr><td><code>CIS_RSA_PUBLIC_KEY</code></td><td>CIS RSA public key (token verification)</td></tr>
+        <tr><td><code>CLOUD_CONFIG_URL</code></td><td>Spring Cloud Config server URL</td></tr>
+        <tr><td><code>COMPLIANCE_BASE_URL</code></td><td>Compliance service base URL</td></tr>
+        <tr><td><code>COM_KROGER_POS_COMPLIANCELOGGINGAPI_ENDPOINT</code></td><td>Compliance logging API endpoint</td></tr>
+        <tr><td><code>DB_URI</code></td><td>Generic database URI</td></tr>
+        <tr><td><code>EXTERNAL_SERVICES_LOADER_CATALOG_BASE_URL</code></td><td>External loader catalog URL</td></tr>
+        <tr><td><code>GF_SECURITY_ADMIN_PASSWORD</code></td><td>Grafana admin password</td></tr>
+        <tr><td><code>LOADER_CATALOG_BASE_URL</code></td><td>Loader catalog service URL</td></tr>
+        <tr><td><code>SWAGGER_CONFIG_URL</code></td><td>Swagger UI config URL</td></tr>
+        <tr><td><code>SWAGGER_URL</code></td><td>Swagger API spec URL</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ========== ANALYST NOTES ========== -->
+    <h2>Analyst Notes and Recommendations</h2>
+
+    <h3>1. Re-run with <code>--llm</code> to Add MongoDB + RabbitMQ Modules</h3>
+    <p>The static analyzer returned <code>confidence: high</code> for runtime, secrets, and shape. However, two significant runtime dependencies &mdash; MongoDB and RabbitMQ &mdash; were <strong>not detected</strong> because the static scanner does not pattern-match NoSQL databases or AMQP brokers. Running the full pipeline with <code>ANTHROPIC_API_KEY</code> set will invoke the LLM gap-filler, which reads source files and infers these dependencies from context. Adding these would materially change the generated infrastructure.</p>
+    <pre><code>yamless generate /path/to/pos-elera-sales-compliance --out-dir ./output --validate</code></pre>
+
+    <h3>2. Add MongoDB Module to Generated Terraform</h3>
+    <p>Once the gap-filler detects MongoDB, the renderer should emit an <strong>Azure Cosmos DB for MongoDB</strong> module. Cosmos DB provides MongoDB wire-protocol compatibility with Azure-native management, private endpoints, and automatic indexing. The golden profile <code>azure-cosmos-db.json</code> covers this resource type.</p>
+    <p>Expected additional cost: ~$25&ndash;$100/mo (serverless tier) or ~$600+/mo (provisioned throughput).</p>
+
+    <h3>3. Add RabbitMQ / AMQP Module</h3>
+    <p>RabbitMQ is not a native Azure service. Options for the generated Terraform:</p>
+    <ul style="margin: 0.5rem 0 0.8rem 1.4rem; color: #333; line-height: 1.8;">
+      <li><strong>Azure Service Bus</strong> &mdash; if the team can migrate AMQP clients to AMQP 1.0 (Service Bus is AMQP 1.0 compatible; RabbitMQ is AMQP 0-9-1). Preferred cloud-native path; already supported by the yamless <code>servicebus</code> module.</li>
+      <li><strong>Self-hosted RabbitMQ on AKS</strong> &mdash; if AMQP 0-9-1 is required. Outside yamless' current scope.</li>
+    </ul>
+    <p>Consider opening a backlog item to add RabbitMQ/AMQP detection in <code>analyzer/dependencies.py</code>.</p>
+
+    <h3>4. PingFederate + PingOne Dual-IdP Pattern</h3>
+    <p>The 17 Ping-related secrets indicate simultaneous integration with both PingFederate (enterprise on-premises SSO) and PingOne (cloud SSO). All Ping secrets are correctly identified and will be stored in Azure Key Vault. The security team should review whether duplicate issuer URIs (<code>PING_AUTH_ISSUER_URI</code> vs <code>PING_FED_AUTH_ISSUER_URI</code>) represent intentional dual-validation or a configuration redundancy.</p>
+
+    <h3>5. Kount Fraud API</h3>
+    <p><code>KOUNT_API_KEY</code> and <code>KOUNT_BASE_URL</code> are correctly detected and will be stored in Key Vault. No additional infrastructure needed.</p>
+
+    <h3>6. High Secret Count (43)</h3>
+    <p>43 secrets reflects the complexity of this microservice's external integrations: dual IdP, MongoDB, RabbitMQ, Redis, Kount, ELERA POS, compliance logging, and Spring Cloud Config. All 43 will be stored in Azure Key Vault. Consider auditing for duplicates &mdash; <code>MONGODB_URI</code> and <code>SPRING_DATA_MONGODB_URI</code> likely point to the same host, and several <code>PING_*</code> / <code>PINGFED_*</code> variables may be redundant config aliases.</p>
+
+    <!-- ========== SUMMARY ========== -->
+    <h2>Summary</h2>
+    <div class="summary-box">
+      <p><code>pos-elera-sales-compliance</code> is a production Java 25 POS compliance microservice with a rich integration surface: dual Ping Identity SSO, MongoDB, RabbitMQ/AMQP, Redis cache, Kount fraud detection, and the ELERA POS platform.</p>
+      <br>
+      <p><strong>Static analysis coverage (both runs):</strong> runtime, shape, secrets = high confidence (correct). Database (MongoDB) and queue (RabbitMQ) = missed, LLM gap-filler required.</p>
+      <br>
+      <p><strong>Container Apps run:</strong> 35 .tf files, $648&ndash;$1,042/mo variable, 30/31 Checkov checks pass.</p>
+      <p><strong>AKS run:</strong> 35 .tf + 8 .yaml files, $985/mo fixed, 48/49 Checkov checks pass.</p>
+      <br>
+      <p>The single MEDIUM Checkov failure (CKV_AZURE_43) is a false positive in both runs &mdash; Checkov scanning an uninstantiated storage module.</p>
+      <br>
+      <p><strong>Recommended target:</strong> AKS for predictable fixed cost and full Kubernetes control plane.</p>
+      <p><strong>Recommended next step:</strong> Run with <code>--no-llm</code> removed (LLM gap-filler enabled) to produce MongoDB (Cosmos DB) and RabbitMQ (Service Bus) modules in the generated Terraform.</p>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Generated by <a href="https://github.com/zafar-ahmed-kr/YAMLess">YAMLess</a> &mdash; Infrastructure from Code
+  </div>
+
+</div>
+</body>
+</html>
