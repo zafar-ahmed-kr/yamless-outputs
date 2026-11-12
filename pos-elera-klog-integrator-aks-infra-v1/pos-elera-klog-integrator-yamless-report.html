@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>YAMLess — pos-elera-klog-integrator</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">YAMLess — pos-elera-klog-integrator</h1>
+</header>
+<h1 id="yamless-generating-azure-infrastructure-from-code">YAMLess:
+Generating Azure Infrastructure from Code</h1>
+<h3 id="case-study-krogertechnologypos-elera-klog-integrator">Case Study
+— krogertechnology/pos-elera-klog-integrator</h3>
+<hr />
+<h2 id="what-is-yamless">What is YAMLess?</h2>
+<p>YAMLess is an <strong>Infrastructure from Code (IFC)</strong> tool.
+Given a code repository, it produces a complete, policy-validated
+Terraform workspace — with no configuration files, no schema to fill in,
+and no IaC expertise required from the developer.</p>
+<p>The pipeline has seven stages:</p>
+<pre><code>Repo on disk
+    │
+    ▼
+┌─────────────────────┐
+│  1. Static Analyzer │  Reads Dockerfile, pom.xml, .env files, Helm values,
+│                     │  Spring Boot YAML, source code (Java @Value, env refs).
+│                     │  Produces a typed AppProfile with confidence scores.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  2. Runtime Enricher│  Java-specific: spring-cloud-starter-config detection,
+│                     │  management.server.port, JMX port from JAVA_OPTS.
+│                     │  CLOUD_CONFIG_URL env var also signals Spring Cloud Config.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  3. Migration Risk  │  Static table (source tech × target cloud) → warnings.
+│     Evaluator       │  Entries: RabbitMQ→ServiceBus, MongoDB→CosmosDB,
+│                     │  Spring Cloud Config→Azure.
+└──────────┬──────────┘
+           │  (fires only when any field is low/medium confidence)
+           ▼
+┌─────────────────────┐
+│  4. LLM Gap-Filler  │  Claude reads relevant source files and fills in what
+│                     │  static analysis couldn&#39;t determine — via structured
+│                     │  tool use only, no free-form parsing.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  5. Golden Resolver │  Loads golden-profiles/&lt;resource&gt;.json — per-env
+│                     │  sizing standards, cost estimate, governance gates.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  6. Renderer        │  Jinja2 root templates + static Terraform modules →
+│                     │  ready-to-apply workspace. Outputs AKS + K8s manifests.
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  7. Validator       │  checkov policy-as-code. Security posture is enforced
+│                     │  by static module files — the LLM cannot affect it.
+└─────────────────────┘</code></pre>
+<hr />
+<h2 id="applying-yamless-to-pos-elera-klog-integrator">Applying YAMLess
+to pos-elera-klog-integrator</h2>
+<p><a
+href="https://github.com/krogertechnology/pos-elera-klog-integrator">pos-elera-klog-integrator</a>
+is a Kroger Technology Java Spring Boot microservice that integrates
+with the ELERA POS platform. It routes POS events via IBM MQ / AMQP and
+Azure Camel Service Bus, persists data to blob storage, exposes metrics
+via a JMX Prometheus exporter (port 12345), and runs a Helm-managed cron
+job for periodic reconciliation.</p>
+<h3 id="command-run">Command run</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">yamless</span> generate /Users/zafar/pos-elera-klog-integrator <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--no-llm</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--target</span> aks <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out-dir</span> ~/yamless/outputs/pos-elera-klog-integrator-aks-infra-v1</span></code></pre></div>
+<h3 id="profile-detected">Profile detected</h3>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 36%" />
+<col style="width: 29%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detected value</th>
+<th>Confidence</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td><code>java</code></td>
+<td>high</td>
+<td><code>FROM .../java-openjre:25-latest</code></td>
+</tr>
+<tr>
+<td>Runtime version</td>
+<td><code>25</code></td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>null</code></td>
+<td>—</td>
+<td><code>EXPOSE $SERVER_PORT</code> — variable reference, not
+literal</td>
+</tr>
+<tr>
+<td>Target port</td>
+<td><code>8080</code></td>
+<td>—</td>
+<td>Fallback from Helm <code>port: 8080</code></td>
+</tr>
+<tr>
+<td>Shape</td>
+<td><code>http-service</code></td>
+<td>high</td>
+<td><code>spring-boot-starter-web</code> detected</td>
+</tr>
+<tr>
+<td>Health check path</td>
+<td><code>/actuator/health</code></td>
+<td>—</td>
+<td><code>spring-boot-starter-actuator</code> detected</td>
+</tr>
+<tr>
+<td>Memory limit</td>
+<td><code>3Gi</code></td>
+<td>—</td>
+<td>Helm <code>memory.limits: 3Gi</code></td>
+</tr>
+<tr>
+<td>Memory request</td>
+<td><code>1.6Gi</code></td>
+<td>—</td>
+<td>Helm <code>memory.requests: 1.6Gi</code></td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>null</code></td>
+<td>—</td>
+<td>No DB client artifact; <code>MSSQL_SA_PASSWORD</code> in secrets
+(likely tooling)</td>
+</tr>
+<tr>
+<td>Cache</td>
+<td><code>true</code></td>
+<td>high</td>
+<td><code>jedis</code> Redis client in pom.xml</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td><code>true</code></td>
+<td>high</td>
+<td><code>com.ibm.mq.allclient</code>,
+<code>mq-jms-spring-boot-starter</code>,
+<code>spring-boot-starter-amqp</code>,
+<code>camel-azure-servicebus</code></td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td><code>false</code></td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>Storage</td>
+<td><code>true</code></td>
+<td>high</td>
+<td><code>pos-elera-blob-persistence</code></td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>1 detected (<code>MSSQL_SA_PASSWORD</code>)</td>
+<td>high</td>
+<td>Low count — secrets likely injected at runtime</td>
+</tr>
+<tr>
+<td>Min replicas</td>
+<td><code>1</code></td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>Max replicas</td>
+<td><code>10</code></td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>Ingress</td>
+<td><code>external: true</code>, port <code>8080</code></td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>Scale trigger</td>
+<td><code>http</code></td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>additional_ports</td>
+<td><code>[]</code></td>
+<td>—</td>
+<td><code>EXPOSE $PROMETHEUS_PORT</code> uses variable — not matched by
+literal regex</td>
+</tr>
+<tr>
+<td>spring_cloud_config</td>
+<td><code>false</code></td>
+<td>—</td>
+<td>No <code>spring-cloud-starter-config</code>, no
+<code>CLOUD_CONFIG_URL</code></td>
+</tr>
+<tr>
+<td>workers</td>
+<td><code>[]</code></td>
+<td>—</td>
+<td>Helm cron job not detected — shape_detector looks for dep packages,
+not Helm</td>
+</tr>
+</tbody>
+</table>
+<h3 id="output-generated">Output generated</h3>
+<pre><code>pos-elera-klog-integrator-aks-infra-v1/
+├── profile.json
+├── pos-elera-klog-integrator-yamless-report.md
+├── pos-elera-klog-integrator-cost-report.html
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── providers.tf
+│   ├── backend.tf
+│   ├── governance.tf
+│   └── modules/
+│       ├── aks_cluster/
+│       ├── aks_workload_identity/
+│       ├── keyvault/
+│       ├── redis/
+│       ├── servicebus/
+│       ├── storage/
+│       ├── vnet/
+│       └── (postgres, mysql, cosmos, event_hubs — generated but unused)
+└── k8s/
+    ├── namespace.yaml
+    ├── service-account.yaml
+    ├── secret-provider-class.yaml
+    ├── deployment.yaml
+    ├── service.yaml
+    ├── ingress.yaml
+    ├── hpa.yaml
+    └── network-policy.yaml</code></pre>
+<p><strong>38 .tf files + 8 K8s manifests written.</strong></p>
+<h3 id="warnings-emitted">Warnings emitted</h3>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 45%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Warning</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>RabbitMQ → Service Bus: AMQP 0-9-1 vs 1.0 protocol gap; direct
+reply-to unsupported</td>
+<td>#37 Migration Risk Evaluator</td>
+</tr>
+</tbody>
+</table>
+<pre><code>  ! RabbitMQ → Azure Service Bus: AMQP 0-9-1 vs AMQP 1.0 protocol gap.
+    Direct reply-to (amq.rabbitmq.reply-to / RabbitTemplate.convertSendAndReceive)
+    is not supported on Service Bus — migrate to correlation-ID reply patterns before go-live.</code></pre>
+<h3 id="cost-estimate">Cost estimate</h3>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Monthly (low–high)</th>
+<th>Annual</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dev</td>
+<td>$170 – $240</td>
+<td>$2,040 – $2,880</td>
+</tr>
+<tr>
+<td>Staging</td>
+<td>$357 – $427</td>
+<td>$4,284 – $5,124</td>
+</tr>
+<tr>
+<td>Production</td>
+<td>$1,047 – $1,117</td>
+<td>$12,564 – $13,404</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="detection-analysis">Detection Analysis</h2>
+<h3 id="what-yamless-got-right">What YAMLess got right</h3>
+<table>
+<colgroup>
+<col style="width: 52%" />
+<col style="width: 47%" />
+</colgroup>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime: Java 25</td>
+<td><code>FROM</code> base image parse</td>
+</tr>
+<tr>
+<td>Health check: <code>/actuator/health</code></td>
+<td><code>spring-boot-starter-actuator</code> dep → shape_detector</td>
+</tr>
+<tr>
+<td>Memory: 3Gi limit / 1.6Gi request</td>
+<td><code>scan_helm_resources()</code> reads Helm values.yaml</td>
+</tr>
+<tr>
+<td>Queue detected (<code>com.ibm.mq.allclient</code>,
+<code>spring-boot-starter-amqp</code>)</td>
+<td><code>analyzer/dependencies.py</code> pom.xml artifact scan</td>
+</tr>
+<tr>
+<td>Storage detected (<code>pos-elera-blob-persistence</code>)</td>
+<td>custom package → storage flag</td>
+</tr>
+<tr>
+<td>Cache detected (<code>jedis</code>)</td>
+<td>Redis client artifact → cache flag</td>
+</tr>
+<tr>
+<td>AMQP migration risk warning</td>
+<td>Migration Risk Evaluator: <code>(rabbitmq, azure)</code> table
+entry</td>
+</tr>
+<tr>
+<td><code>target_port: 8080</code></td>
+<td>Helm <code>port: 8080</code> fallback when EXPOSE is a variable</td>
+</tr>
+</tbody>
+</table>
+<h3 id="known-gaps">Known gaps</h3>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 35%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr>
+<th>Gap</th>
+<th>Root cause</th>
+<th>Potential fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>port: null</code></td>
+<td><code>EXPOSE $SERVER_PORT</code> uses an ENV variable reference;
+<code>_detect_ports()</code> only matches literal integers</td>
+<td>Resolve <code>ENV SERVER_PORT=...</code> declarations and substitute
+before port detection</td>
+</tr>
+<tr>
+<td><code>additional_ports: []</code> (Prometheus 12345 missed)</td>
+<td>Same root cause: <code>EXPOSE $PROMETHEUS_PORT</code> uses an ENV
+var</td>
+<td>Same fix as above; alternatively parse JMX agent flag
+(<code>javaagent:./jmx.jar=$PROMETHEUS_PORT</code>)</td>
+</tr>
+<tr>
+<td><code>workers: []</code> (Helm cron job not detected)</td>
+<td>Shape detector infers workers from dependency packages
+(e.g. <code>celery</code>, <code>rq</code>), not from Helm chart
+definitions</td>
+<td>Add Helm <code>cronjobs:</code> block parsing to
+<code>scan_helm_resources()</code></td>
+</tr>
+<tr>
+<td><code>database: null</code> (despite
+<code>MSSQL_SA_PASSWORD</code>)</td>
+<td>No SQL Server JDBC driver or Spring Data artifact in pom.xml —
+likely a test/tooling variable</td>
+<td>Likely correct; could add <code>MSSQL_SA_PASSWORD</code> as a
+heuristic signal</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="infrastructure-generated">Infrastructure Generated</h2>
+<p>The rendered output covers all detected dependencies:</p>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 41%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Terraform module</th>
+<th>K8s resource</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AKS Cluster</td>
+<td><code>modules/aks_cluster/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Workload Identity (UAMI)</td>
+<td><code>modules/aks_workload_identity/</code></td>
+<td><code>service-account.yaml</code></td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td><code>modules/keyvault/</code></td>
+<td><code>secret-provider-class.yaml</code></td>
+</tr>
+<tr>
+<td>Redis Cache (P1 prod)</td>
+<td><code>modules/redis/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Blob Storage</td>
+<td><code>modules/storage/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Azure Service Bus (Standard)</td>
+<td><code>modules/servicebus/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>VNet</td>
+<td><code>modules/vnet/</code></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Kubernetes manifests include topology spread constraints (zone +
+hostname), HPA (1–10 replicas), network policy, and Workload Identity
+service account annotation.</p>
+<hr />
+<h2 id="improvement-roadmap">Improvement Roadmap</h2>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 30%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Change</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>High</td>
+<td>Resolve ENV var references before port EXPOSE matching</td>
+<td>Open</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Parse Helm <code>cronjobs:</code> block to populate
+<code>workers</code> list</td>
+<td>Open</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>Treat <code>MSSQL_SA_PASSWORD</code> secret as SQL Server
+signal</td>
+<td>Open</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>YAMLess v1 against <code>pos-elera-klog-integrator</code> correctly
+identifies the Java runtime, Spring Boot health check path, Helm-sourced
+memory limits, all three backing service dependencies (Redis, Service
+Bus, Blob Storage), and fires the AMQP migration risk warning. The main
+gap is Dockerfile port detection: both <code>EXPOSE $SERVER_PORT</code>
+and <code>EXPOSE $PROMETHEUS_PORT</code> use ENV variable references
+that the current literal-integer regex cannot match. Port 8080 is
+recovered via Helm fallback; the Prometheus sidecar port (12345) is
+missed. The Helm-defined cron job is also not surfaced as a
+<code>WorkerProfile</code> — a future enhancement to
+<code>scan_helm_resources()</code>.</p>
+<hr />
+<p><em>Generated by YAMLess —
+https://github.com/zafar-ahmed-kr/YAMLess</em> <em>Date:
+2026-11-11</em></p>
+</body>
+</html>
