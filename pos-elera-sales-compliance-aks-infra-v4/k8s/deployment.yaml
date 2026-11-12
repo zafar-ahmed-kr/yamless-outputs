@@ -1,0 +1,271 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pos-elera-sales-compliance
+  namespace: pos-elera-sales-compliance
+  labels:
+    app.kubernetes.io/name: pos-elera-sales-compliance
+    app.kubernetes.io/managed-by: yamless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pos-elera-sales-compliance
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pos-elera-sales-compliance
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: pos-elera-sales-compliance
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: pos-elera-sales-compliance
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: pos-elera-sales-compliance
+      containers:
+        - name: pos-elera-sales-compliance
+          image: ${var.image}
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1152Mi
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets
+              readOnly: true
+          env:
+            - name: MONGODB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-url
+                  key: value
+            - name: SERVICEBUS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: servicebus-connection-string
+                  key: value
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: redis-url
+                  key: value
+            - name: AMQP_BROKER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: amqp-broker-password
+                  key: value
+            - name: AUTHORIZATION_OAUTH2_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: authorization-oauth2-redirect-uri
+                  key: value
+            - name: AUTHORIZATION_PING_BASE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: authorization-ping-base-endpoint
+                  key: value
+            - name: AUTHORIZATION_PING_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: authorization-ping-password
+                  key: value
+            - name: AUTH_TIMEOUT_CONNECTION
+              valueFrom:
+                secretKeyRef:
+                  name: auth-timeout-connection
+                  key: value
+            - name: AUTH_TIMEOUT_READ
+              valueFrom:
+                secretKeyRef:
+                  name: auth-timeout-read
+                  key: value
+            - name: CIS_RSA_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cis-rsa-public-key
+                  key: value
+            - name: CLOUD_CONFIG_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-config-url
+                  key: value
+            - name: COMPLIANCE_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: compliance-base-url
+                  key: value
+            - name: COM_KROGER_POS_COMPLIANCELOGGINGAPI_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: com-kroger-pos-complianceloggingapi-endpoint
+                  key: value
+            - name: DB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: db-uri
+                  key: value
+            - name: ELERA_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: elera-base-url
+                  key: value
+            - name: ELERA_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: elera-redirect-uri
+                  key: value
+            - name: ELERA_SERVICE_ACCOUNT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elera-service-account-password
+                  key: value
+            - name: EXTERNAL_SERVICES_LOADER_CATALOG_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: external-services-loader-catalog-base-url
+                  key: value
+            - name: KOUNT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kount-api-key
+                  key: value
+            - name: KOUNT_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: kount-base-url
+                  key: value
+            - name: LOADER_CATALOG_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: loader-catalog-base-url
+                  key: value
+            - name: MQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mq-password
+                  key: value
+            - name: PINGFED_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pingfed-client-secret
+                  key: value
+            - name: PINGFED_DISCOVERY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: pingfed-discovery-url
+                  key: value
+            - name: PING_AUTH_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ping-auth-issuer-uri
+                  key: value
+            - name: PING_AUTH_JWK_SET_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ping-auth-jwk-set-uri
+                  key: value
+            - name: PING_BASE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: ping-base-endpoint
+                  key: value
+            - name: PING_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ping-client-id
+                  key: value
+            - name: PING_FED_AUTH_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ping-fed-auth-issuer-uri
+                  key: value
+            - name: PING_FED_AUTH_JWT_SET_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ping-fed-auth-jwt-set-uri
+                  key: value
+            - name: PING_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ping-password
+                  key: value
+            - name: PING_PONG_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ping-pong-base-url
+                  key: value
+            - name: PING_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ping-username
+                  key: value
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: redis-host
+                  key: value
+            - name: REDIS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: redis-key
+                  key: value
+            - name: SPRING_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: spring-rabbitmq-password
+                  key: value
+            - name: SPRING_SECURITY_OAUTH2_PING_FED_JWT_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: spring-security-oauth2-ping-fed-jwt-issuer-uri
+                  key: value
+            - name: SPRING_SECURITY_OAUTH2_PING_FED_JWT_JWK_SET_URI
+              valueFrom:
+                secretKeyRef:
+                  name: spring-security-oauth2-ping-fed-jwt-jwk-set-uri
+                  key: value
+            - name: SPRING_SECURITY_OAUTH2_PING_ONE_JWT_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: spring-security-oauth2-ping-one-jwt-issuer-uri
+                  key: value
+            - name: SPRING_SECURITY_OAUTH2_PING_ONE_JWT_JWK_SET_URI
+              valueFrom:
+                secretKeyRef:
+                  name: spring-security-oauth2-ping-one-jwt-jwk-set-uri
+                  key: value
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: pos-elera-sales-compliance-secrets

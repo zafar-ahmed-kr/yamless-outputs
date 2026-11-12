@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pos-elera-sales-compliance
+  namespace: pos-elera-sales-compliance
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    app.kubernetes.io/name: pos-elera-sales-compliance
+    app.kubernetes.io/managed-by: yamless
+spec:
+  rules:
+    - host: pos-elera-sales-compliance.example.com  # replace with your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pos-elera-sales-compliance
+                port:
+                  number: 80
