@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pos-elera-klog-integrator-default-deny
+  namespace: pos-elera-klog-integrator
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: pos-elera-klog-integrator
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow inbound from ingress controller only
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 8080
+  egress:
+    # Allow all outbound (DNS, Azure APIs, backing services)
+    - {}

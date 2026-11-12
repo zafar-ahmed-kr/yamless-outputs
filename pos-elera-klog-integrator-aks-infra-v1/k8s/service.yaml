@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pos-elera-klog-integrator
+  namespace: pos-elera-klog-integrator
+  labels:
+    app.kubernetes.io/name: pos-elera-klog-integrator
+    app.kubernetes.io/managed-by: yamless
+spec:
+  selector:
+    app.kubernetes.io/name: pos-elera-klog-integrator
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,216 @@
+{
+  "app": {
+    "name": "pos-elera-klog-integrator",
+    "runtime": "java",
+    "runtime_version": "25",
+    "shape": "http-service",
+    "port": null,
+    "dockerfile": true,
+    "health_check_path": "/actuator/health",
+    "mem_limit": "3Gi",
+    "mem_request": "1.6Gi"
+  },
+  "dependencies": {
+    "database": null,
+    "cache": true,
+    "storage": true,
+    "queue": true,
+    "kafka": false
+  },
+  "secrets": [
+    "MSSQL_SA_PASSWORD"
+  ],
+  "scaling": {
+    "min_replicas": 1,
+    "max_replicas": 10,
+    "scale_trigger": "http"
+  },
+  "ingress": {
+    "external": true,
+    "target_port": 8080
+  },
+  "workers": [],
+  "target": "aks",
+  "environment": "production",
+  "confidence": {
+    "runtime": "high",
+    "storage": "high",
+    "secrets": "high",
+    "shape": "high"
+  },
+  "cost_estimate": {
+    "environment": "production",
+    "monthly_low": 1047.0,
+    "monthly_high": 1117.0,
+    "annual_low": 12564.0,
+    "annual_high": 13404.0,
+    "items": [
+      {
+        "name": "AKS Cluster",
+        "category": "compute",
+        "low": 600.0,
+        "high": 600.0,
+        "note": ""
+      },
+      {
+        "name": "Key Vault",
+        "category": "security",
+        "low": 15.0,
+        "high": 15.0,
+        "note": ""
+      },
+      {
+        "name": "Redis Cache",
+        "category": "cache",
+        "low": 370.0,
+        "high": 370.0,
+        "note": "P1"
+      },
+      {
+        "name": "Blob Storage",
+        "category": "storage",
+        "low": 30.0,
+        "high": 50.0,
+        "note": ""
+      },
+      {
+        "name": "Service Bus",
+        "category": "messaging",
+        "low": 32.0,
+        "high": 82.0,
+        "note": "Standard"
+      }
+    ],
+    "by_env": {
+      "dev": {
+        "monthly_low": 170.0,
+        "monthly_high": 240.0,
+        "items": [
+          {
+            "name": "AKS Cluster",
+            "category": "compute",
+            "low": 100.0,
+            "high": 100.0,
+            "note": ""
+          },
+          {
+            "name": "Key Vault",
+            "category": "security",
+            "low": 5.0,
+            "high": 5.0,
+            "note": ""
+          },
+          {
+            "name": "Redis Cache",
+            "category": "cache",
+            "low": 55.0,
+            "high": 55.0,
+            "note": "C1"
+          },
+          {
+            "name": "Blob Storage",
+            "category": "storage",
+            "low": 5.0,
+            "high": 25.0,
+            "note": ""
+          },
+          {
+            "name": "Service Bus",
+            "category": "messaging",
+            "low": 5.0,
+            "high": 55.0,
+            "note": "Basic"
+          }
+        ]
+      },
+      "staging": {
+        "monthly_low": 357.0,
+        "monthly_high": 427.0,
+        "items": [
+          {
+            "name": "AKS Cluster",
+            "category": "compute",
+            "low": 250.0,
+            "high": 250.0,
+            "note": ""
+          },
+          {
+            "name": "Key Vault",
+            "category": "security",
+            "low": 5.0,
+            "high": 5.0,
+            "note": ""
+          },
+          {
+            "name": "Redis Cache",
+            "category": "cache",
+            "low": 55.0,
+            "high": 55.0,
+            "note": "C1"
+          },
+          {
+            "name": "Blob Storage",
+            "category": "storage",
+            "low": 15.0,
+            "high": 35.0,
+            "note": ""
+          },
+          {
+            "name": "Service Bus",
+            "category": "messaging",
+            "low": 32.0,
+            "high": 82.0,
+            "note": "Standard"
+          }
+        ]
+      },
+      "production": {
+        "monthly_low": 1047.0,
+        "monthly_high": 1117.0,
+        "items": [
+          {
+            "name": "AKS Cluster",
+            "category": "compute",
+            "low": 600.0,
+            "high": 600.0,
+            "note": ""
+          },
+          {
+            "name": "Key Vault",
+            "category": "security",
+            "low": 15.0,
+            "high": 15.0,
+            "note": ""
+          },
+          {
+            "name": "Redis Cache",
+            "category": "cache",
+            "low": 370.0,
+            "high": 370.0,
+            "note": "P1"
+          },
+          {
+            "name": "Blob Storage",
+            "category": "storage",
+            "low": 30.0,
+            "high": 50.0,
+            "note": ""
+          },
+          {
+            "name": "Service Bus",
+            "category": "messaging",
+            "low": 32.0,
+            "high": 82.0,
+            "note": "Standard"
+          }
+        ]
+      }
+    }
+  },
+  "warnings": [
+    "RabbitMQ → Azure Service Bus: AMQP 0-9-1 vs AMQP 1.0 protocol gap. Direct reply-to (amq.rabbitmq.reply-to / RabbitTemplate.convertSendAndReceive) is not supported on Service Bus — migrate to correlation-ID reply patterns before go-live."
+  ],
+  "additional_ports": [],
+  "spring_cloud_config": false,
+  "workload_only": false
+}
